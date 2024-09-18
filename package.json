@@ -2,11 +2,13 @@
   "name": "crypto-swap-web-tg",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://etoshutka.github.io/swap-tg-client",
   "scripts": {
     "dev": "next dev --port 4000",
     "build": "next build",
     "start": "next start --port 4000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "next build && touch out/.nojekyll && gh-pages -d out -t true"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
