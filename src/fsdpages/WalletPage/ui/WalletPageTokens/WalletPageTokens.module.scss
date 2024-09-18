@@ -1,0 +1,11 @@
+.tokens_list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.add_token_btn {
+  margin-top: 12px;
+}

@@ -1,0 +1,50 @@
+@import '@/shared/styles/variables.scss';
+
+.button {
+  display: flex;
+  gap: 8px;
+  min-height: 50px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: 550;
+  letter-spacing: -0.4px;
+  padding: 8px 16px;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  white-space: nowrap;
+
+  // Types styles
+  &.default {
+    color: var(--btnText);
+    background: var(--btnBg);
+  }
+
+  &.text {
+    color: var(--btnText);
+    border: none;
+    background: none;
+  }
+
+  &.primary {
+    color: var(--btnPrimaryText);
+    background: var(--btnPrimaryBg);
+    border-radius: 12px;
+  }
+
+  &.inline {
+    background: var(--inlineBg);
+  }
+
+  // Options styles
+  &.block {
+    width: 100%;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+  }
+}

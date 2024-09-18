@@ -1,0 +1,11 @@
+.loading_window {
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: absolute;
+  background: var(--bg);
+}

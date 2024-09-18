@@ -1,0 +1,33 @@
+@import '@/shared/styles/variables';
+
+.typography_subtitle {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.typography_text {
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.typography_title {
+  font-size: 27.5px;
+  letter-spacing: -0.6px;
+}
+
+.typography_description {
+  font-size: 14px;
+  line-height: 27px;
+  letter-spacing: -0.2px;
+}
+
+.typography_title, .typography_text, .typography_description {
+  opacity: 1;
+  color: var(--text);
+
+  &.secondary {
+    color: var(--secondaryText);
+  }
+}

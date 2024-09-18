@@ -1,0 +1,22 @@
+@import '@/shared/styles/variables';
+
+.popover_wrapper {
+  position: relative;
+
+  .trigger {
+    cursor: pointer;
+  }
+
+  .popover {
+    position: absolute;
+    overflow: hidden;
+    min-width: 235px;
+    height: fit-content;
+    background: rgba($color: #EDEDED, $alpha: 0.8);
+    border-radius: 12px;
+    box-shadow: 0 0 64px 0 rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    z-index: 10000;
+  }
+}
