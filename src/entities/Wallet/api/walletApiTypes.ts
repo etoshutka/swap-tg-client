@@ -59,3 +59,10 @@ export interface TransferParams {
 export interface GetWalletTransactionsParams {
   id: string;
 }
+
+export interface SwapParams {
+  wallet_id: string;
+  from_token_id: string;
+  to_token_id: string;
+  amount: number;
+}

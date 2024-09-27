@@ -87,5 +87,28 @@ export const walletApi = api.injectEndpoints({
         params,
       }),
     }),
+
+    swap: build.mutation<ApiResponse<Transaction>, types.SwapParams>({
+      query: (body) => ({
+        url: `/wallets/swap`,
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
+
+export const {
+  useGetWalletQuery,
+  useGetWalletsQuery,
+  useTransferMutation,
+  useCreateWalletMutation,
+  useImportWalletMutation,
+  useDeleteWalletMutation,
+  useGetTokenInfoQuery,
+  useGetTokenPriceQuery,
+  useAddWalletTokenMutation,
+  useGetWalletTransactionsQuery,
+  useSwapMutation,
+  useLazyGetTokenPriceQuery,
+} = walletApi;

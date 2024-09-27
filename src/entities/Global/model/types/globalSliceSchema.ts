@@ -14,6 +14,7 @@ export enum GlobalWindow {
   CreateWallet = 'CreateWallet',
   PrepareTransfer = 'PrepareTransfer',
   ConfirmTransfer = 'ConfirmTransfer',
+  ConfirmSwap = 'ConfirmSwap',
 }
 
 export interface GlobalWindowType<T> {

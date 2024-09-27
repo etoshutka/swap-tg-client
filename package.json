@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
+    "@telegram-apps/sdk": "^1.1.3",
     "@twa-dev/sdk": "^7.8.0",
     "antd": "^5.20.3",
     "classnames": "^2.5.1",
