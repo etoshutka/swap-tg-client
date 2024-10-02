@@ -1,4 +1,4 @@
-import { Transaction as TransactionInterface } from '@/entities/Wallet';
+import { Transaction as TransactionInterface, TransactionType } from '@/entities/Wallet';
 import { transactionTypeLabel } from '../consts/transactionTypeLabel';
 import { transactionTypeIcon } from '../consts/transactionTypeIcon';
 import { globalActions, GlobalWindow } from '@/entities/Global';
@@ -21,6 +21,41 @@ export const Transaction: React.FC<TransactionProps> = ({ transaction }) => {
     dispatch(globalActions.addWindow({ window: GlobalWindow.TransactionDetails, payload: transaction }));
   };
 
+  const renderAmount = () => {
+    if (transaction.type === TransactionType.SWAP && transaction.fromCurrency && transaction.toCurrency) {
+      return (
+        <>
+          <Typography.Text 
+            text={`${transaction.amount.toFixed(2)} ${transaction.fromCurrency} -> ${transaction.toCurrency}`} 
+            fontSize={16} 
+            weight={550} 
+            align="right" 
+          />
+          <Typography.Text 
+            text={`≈ ${transaction.amount_usd.toFixed(2)} $`} 
+            type="secondary" 
+            align="right" 
+          />
+        </>
+      );
+    }
+    return (
+      <>
+        <Typography.Text 
+          text={`${transaction.amount.toFixed(2)} ${transaction.currency || transaction.fromCurrency || ''}`} 
+          fontSize={16} 
+          weight={550} 
+          align="right" 
+        />
+        <Typography.Text 
+          text={`≈ ${transaction.amount_usd.toFixed(2)} $`} 
+          type="secondary" 
+          align="right" 
+        />
+      </>
+    );
+  };
+
   return (
     <Field justify="space-between" onClick={handleTransactionClick}>
       <Flex align="center" gap={12}>
@@ -32,9 +67,9 @@ export const Transaction: React.FC<TransactionProps> = ({ transaction }) => {
       </Flex>
 
       <Flex direction="column">
-        <Typography.Text text={`${transaction.amount.toFixed(2)} ${transaction.currency}`} fontSize={16} weight={550} align="right" />
-        <Typography.Text text={`≈ ${transaction.amount_usd.toFixed(2)} $`} type="secondary" align="right" />
+        {renderAmount()}
       </Flex>
     </Field>
   );
 };
+

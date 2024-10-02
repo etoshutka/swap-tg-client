@@ -3,7 +3,10 @@ import { Typography } from '@/shared/ui/Typography/Typography';
 import { WindowHeader } from '@/shared/ui/Header/WindowHeader';
 import { Window } from '@/shared/ui/Window/Window';
 import { Flex } from '@/shared/ui/Flex/Flex';
+import Image from 'next/image';
+import { getTokenImage } from '@/fsdpages/WalletPage';
 import React from 'react';
+import { Token } from '@/entities/Wallet';
 
 export interface ConfirmSwapWindowProps {
   logic: UseSwapWindowLogic;
@@ -12,26 +15,32 @@ export interface ConfirmSwapWindowProps {
 export const ConfirmSwapWindow: React.FC<ConfirmSwapWindowProps> = (props) => {
   const { flow, state } = props.logic;
 
+  const renderTokenBlock = (amount: string, token: Token | undefined, isFrom: boolean) => (
+    <Flex align="center" gap={12} style={{ backgroundColor: '#f5f5f5', borderRadius: '12px', padding: '12px', width: '100%' }}>
+      {token && (
+        <Image src={getTokenImage(token)} alt={`${token.symbol} icon`} width={32} height={32} />
+      )}
+      <Flex direction="column">
+        <Typography.Title text={amount} fontFamily="ClashDisplay-Bold" fontSize={28} />
+        <Typography.Text text={token?.symbol || ''} type="secondary" />
+      </Flex>
+    </Flex>
+  );
+
   return (
     <Window isOpen={state.isConfirmSwapWindowOpen} zIndex={5006} btnOnClick={flow.handleSwapConfirm} btnText="Confirm" isBtnActive>
       <WindowHeader title="Confirm Swap" isLoading={state.isLoading} />
-      <Flex width="100%" direction="column" align="center" gap={24}>
+      <Flex width="100%" direction="column" align="center" gap={24} style={{ padding: '0 16px' }}>
         <Flex width="100%" direction="column" align="center" gap={12}>
-          <Flex align="center" gap={9}>
-            <Typography.Title text={state.fromAmount} fontFamily="ClashDisplay-Bold" />
-            <Typography.Title text={state.fromToken?.symbol} fontFamily="ClashDisplay-Bold" />
-          </Flex>
-          <Typography.Text text="↓" type="secondary" />
-          <Flex align="center" gap={9}>
-            <Typography.Title text={state.toAmount} fontFamily="ClashDisplay-Bold" />
-            <Typography.Title text={state.toToken?.symbol} fontFamily="ClashDisplay-Bold" />
-          </Flex>
+          {renderTokenBlock(state.fromAmount, state.fromToken, true)}
+          <Typography.Text text="↓" type="secondary" fontSize={24} />
+          {renderTokenBlock(state.toAmount, state.toToken, false)}
         </Flex>
 
-        <Flex width="100%" direction="column" gap={8}>
+        <Flex width="100%" direction="column" gap={16} style={{ backgroundColor: '#f5f5f5', borderRadius: '12px', padding: '12px' }}>
           <Flex width="100%" justify="space-between">
             <Typography.Text text="Rate" type="secondary" />
-            <Typography.Text text={`1 ${state.fromToken?.symbol} = ${state.rate} ${state.toToken?.symbol}`} />
+            <Typography.Text text={`1 ${state.fromToken?.symbol} = ${state.rate.toFixed(6)} ${state.toToken?.symbol}`} />
           </Flex>
           <Flex width="100%" justify="space-between">
             <Typography.Text text="Network fee" type="secondary" />
@@ -39,7 +48,12 @@ export const ConfirmSwapWindow: React.FC<ConfirmSwapWindowProps> = (props) => {
           </Flex>
         </Flex>
 
-        <Typography.Description text="Please make sure you are swapping to the correct token" align="center" type="secondary" />
+        <Typography.Description 
+          text="Please make sure you are swapping to the correct token" 
+          align="center" 
+          type="secondary" 
+          fontSize={14}
+        />
       </Flex>
     </Window>
   );

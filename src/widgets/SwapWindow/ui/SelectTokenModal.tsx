@@ -21,18 +21,34 @@ export const SelectTokenPage: React.FC<SelectTokenPageProps> = ({
 }) => {
   return (
     <Flex direction="column" gap={12}>
-      <Button onClick={onBack}>Back to Swap</Button>
-      <Typography.Title text={title} />
+      <Button 
+        onClick={onBack} 
+        style={{
+          width: '100%',
+          padding: '12px',
+          borderRadius: '20px',
+          backgroundColor: '#f0f0f0',
+          justifyContent: 'center', // Центрирование содержимого кнопки
+        }}
+      >
+        <Typography.Text text="Back to Swap" />
+      </Button>
+      <Typography.Title 
+        text={title}
+        align="center"
+      />
       {tokens.map((token) => (
         <Button
           key={token.id}
           onClick={() => onSelectToken(token)}
           style={{
+            width: '100%',
             justifyContent: 'flex-start',
             padding: '12px',
+            borderRadius: '12px',
           }}
         >
-          <Flex align="center" gap={12}>
+          <Flex align="center" gap={12} style={{ width: '100%' }}>
             <Image src={getTokenImage(token)} alt={token.symbol} width={32} height={32} />
             <Flex direction="column" align="flex-start">
               <Typography.Text text={token.symbol} weight="bold" />
@@ -45,4 +61,5 @@ export const SelectTokenPage: React.FC<SelectTokenPageProps> = ({
         </Button>
       ))}
     </Flex>
-  )}
+  );
+};

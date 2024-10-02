@@ -21,6 +21,7 @@ export interface InputProps {
   variant?: 'inline';
   onMaxButtonClick?: () => void;
   isHasMaxButton?: boolean;
+  disabled?: boolean;
 }
 
 export const Input: React.FC<InputProps> = (props) => {

@@ -68,6 +68,10 @@ export interface Transaction {
   to: string;
   from: string;
   currency: string;
+  fromCurrency?: string;
+  toCurrency?: string;
+  toAmount?: number;
+  toAmount_usd?: number;
   fee: number;
   fee_usd: number;
   updated_at: string;

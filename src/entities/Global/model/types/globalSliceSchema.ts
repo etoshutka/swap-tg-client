@@ -15,6 +15,8 @@ export enum GlobalWindow {
   PrepareTransfer = 'PrepareTransfer',
   ConfirmTransfer = 'ConfirmTransfer',
   ConfirmSwap = 'ConfirmSwap',
+  SelectFromToken = 'SelectFromToken',
+  SelectToToken = 'SelectToToken',
 }
 
 export interface GlobalWindowType<T> {

@@ -1,9 +1,9 @@
-import { getSelectedWallet, Network, Token, Wallet, walletApi, GetTokenInfoResult } from '@/entities/Wallet';
-import { getIsWindowOpen, getWindowsOpen, globalActions, GlobalWindow } from '@/entities/Global';
+import { getSelectedWallet, Network, Token, Wallet, walletApi } from '@/entities/Wallet';
+import { getIsWindowOpen, globalActions, GlobalWindow } from '@/entities/Global';
 import { useDebounce } from '@/shared/lib/hooks/useDebounce/useDebounce';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { useDispatch, useSelector } from 'react-redux';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 
 export const useSwapWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
@@ -16,18 +16,14 @@ export const useSwapWindowLogic = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [rate, setRate] = useState<number>(0);
   const [currentView, setCurrentView] = useState<'swap' | 'selectFromToken' | 'selectToToken'>('swap');
-  const [customTokenAddress, setCustomTokenAddress] = useState<string>('');
-  const [customTokenInfo, setCustomTokenInfo] = useState<GetTokenInfoResult | undefined>();
 
   const [getTokenPriceRequest] = walletApi.useLazyGetTokenPriceQuery();
-  const [getTokenInfoRequest] = walletApi.useLazyGetTokenInfoQuery();
   const [swapRequest, { isLoading: isSwapLoading }] = walletApi.useSwapMutation();
-  const [addTokenRequest] = walletApi.useAddWalletTokenMutation();
   const [getWalletsRequest] = walletApi.useLazyGetWalletsQuery();
 
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
-  const isSwapWindowOpen: boolean = useSelector(getWindowsOpen).some((w) => w.window === GlobalWindow.Swap);
-  const isConfirmSwapWindowOpen: boolean = useSelector(getWindowsOpen).some((w) => w.window === GlobalWindow.ConfirmSwap);
+  const isSwapWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.Swap);
+  const isConfirmSwapWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.ConfirmSwap);
 
   const fromTokens = useMemo(() => 
     selectedWallet?.tokens ? selectedWallet.tokens.filter((t) => t.balance > 0) : [],
@@ -39,9 +35,48 @@ export const useSwapWindowLogic = () => {
     [selectedWallet]
   );
 
-  const handleGetRate = useDebounce(async (amount: string) => {
-    try {
+  // const handleGetRate = useDebounce(async (amount: string) => {
+  //   try {
+  //     setIsLoading(true);
+  //     if (!fromToken || !toToken || !selectedWallet || !amount || Number(amount) > fromToken?.balance) return;
+  
+  //     const result = await getTokenPriceRequest({
+  //       symbol: fromToken?.symbol,
+  //       network: selectedWallet?.network,
+  //     }).unwrap();
+  
+  //     if (result.ok && result.data) {
+  //       const fromTokenPrice = result.data.price;
+        
+  //       const toTokenResult = await getTokenPriceRequest({
+  //         symbol: toToken?.symbol,
+  //         network: selectedWallet?.network,
+  //       }).unwrap();
+  
+  //       if (toTokenResult.ok && toTokenResult.data) {
+  //         const toTokenPrice = toTokenResult.data.price;
+          
+  //         const conversionRate = fromTokenPrice / toTokenPrice;
+  //         const convertedAmount = Number(amount) * conversionRate;
+          
+  //         setRate(conversionRate);
+  //         setToAmount(convertedAmount.toFixed(6));
+  //       }
+  //     }
+  //   } catch (e) {
+  //     errorToast('Failed to get token price');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, 350);
+
+  const debouncedHandleGetRate = useCallback(
+    useDebounce(async (amount: string) => {
+      if (!fromToken || !toToken || !selectedWallet || !amount || Number(amount) > fromToken?.balance) return;
+      
       setIsLoading(true);
+      try {
+        setIsLoading(true);
       if (!fromToken || !toToken || !selectedWallet || !amount || Number(amount) > fromToken?.balance) return;
   
       const result = await getTokenPriceRequest({
@@ -63,82 +98,18 @@ export const useSwapWindowLogic = () => {
           const conversionRate = fromTokenPrice / toTokenPrice;
           const convertedAmount = Number(amount) * conversionRate;
           
-          setRate(convertedAmount);
+          setRate(conversionRate);
           setToAmount(convertedAmount.toFixed(6));
         }
       }
-    } catch (e) {
-      errorToast('Failed to get token price');
-    } finally {
-      setIsLoading(false);
-    }
-  }, 800);
-
-  const handleGetCustomTokenInfo = useDebounce(async (tokenAddress: string) => {
-    try {
-      if (!tokenAddress || !selectedWallet) return;
-      setIsLoading(true);
-
-      const result = await getTokenInfoRequest({
-        network: selectedWallet.network,
-        contract: tokenAddress,
-      }).unwrap();
-
-      setCustomTokenInfo(result.data);
-    } catch (e) {
-      errorToast('Failed to get token info');
-    } finally {
-      setIsLoading(false);
-    }
-  }, 800);
-
-  const handleAddCustomToken = async () => {
-    try {
-      if (!selectedWallet || !customTokenAddress) return;
-      setIsLoading(true);
-
-      const isTokenAlreadyAdded: boolean = selectedWallet.tokens.some((t) => t.contract === customTokenAddress);
-
-      if (isTokenAlreadyAdded) {
-        errorToast('Token already added');
-        return;
+      } catch (e) {
+        errorToast('Failed to get token price');
+      } finally {
+        setIsLoading(false);
       }
-
-      const result = await addTokenRequest({
-        wallet_id: selectedWallet.id,
-        wallet_address: selectedWallet.address,
-        network: selectedWallet.network,
-        contract: customTokenAddress,
-      }).unwrap();
-
-      if (result.ok) {
-        successToast('Token added');
-        getWalletsRequest();
-        // Обновляем toToken новым токеном
-        setToToken({
-          ...customTokenInfo!,
-          id: customTokenAddress,
-          balance: 0,
-          balance_usd: 0,
-        } as Token);
-      }
-    } catch (e) {
-      errorToast('Failed to add token');
-    } finally {
-      setCustomTokenInfo(undefined);
-      setIsLoading(false);
-      setCustomTokenAddress('');
-    }
-  };
-
-  const handleCustomTokenAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomTokenAddress(e.target.value);
-    if (e.target.value) {
-      handleGetCustomTokenInfo(e.target.value);
-    } else {
-      setCustomTokenInfo(undefined);
-    }
-  };
+    }, 350),
+    [fromToken, toToken, selectedWallet, errorToast]
+  );
 
   const handleClearState = () => {
     setFromToken(undefined);
@@ -151,6 +122,7 @@ export const useSwapWindowLogic = () => {
 
   const handleSwapConfirm = async () => {
     try {
+      setIsLoading(true)
       if (!fromToken || !toToken || !selectedWallet || !fromAmount) return;
 
       const result = await swapRequest({
@@ -163,28 +135,40 @@ export const useSwapWindowLogic = () => {
       if (result.ok) {
         successToast('Swap successful');
         handleClearState();
+        dispatch(globalActions.removeAllWindows());
+        getWalletsRequest(); // Обновляем данные кошелька после успешного свапа
       }
     } catch (e) {
       errorToast('Failed to swap tokens');
+    } finally {
+      setIsLoading(false)
     }
   };
 
-  const handleFromAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsLoading(true);
+  const handleFromAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAmount = e.target.value;
     if (!fromToken) return;
 
-    if (Number(e.target.value) > fromToken?.balance) {
+    setFromAmount(newAmount);
+
+    if (Number(newAmount) > fromToken?.balance) {
       errorToast('Insufficient funds');
     }
 
-    setFromAmount(e.target.value);
-    handleGetRate(e.target.value);
-  };
+    if (!newAmount) {
+      setRate(0);
+      setToAmount('');
+    } else {
+      debouncedHandleGetRate(newAmount);
+    }
+  }, [fromToken, errorToast, debouncedHandleGetRate]);
+
+  
 
   const handleMaxButtonClick = () => {
     if (fromToken) {
       setFromAmount(fromToken.balance.toString());
-      handleGetRate(fromToken.balance.toString());
+     // debouncedHandleGetRate(fromToken.balance.toString());
     }
   };
 
@@ -206,7 +190,7 @@ export const useSwapWindowLogic = () => {
     if (token.id === toToken?.id) {
       setToToken(undefined);
     }
-    handleGetRate(fromAmount);
+   // debouncedHandleGetRate(fromAmount);
   };
 
   const handleSelectToToken = (token: Token) => {
@@ -215,25 +199,25 @@ export const useSwapWindowLogic = () => {
     if (token.id === fromToken?.id) {
       setFromToken(undefined);
     }
-    handleGetRate(fromAmount);
+   // debouncedHandleGetRate(fromAmount);
   };
 
   const handleBackToSwap = () => {
     setCurrentView('swap');
   };
 
-  useEffect(() => {
-    if (isSwapWindowOpen && fromToken) {
-      handleGetRate(toAmount);
-    }
-  }, [isSwapWindowOpen, fromToken]);
+  // useEffect(() => {
+  //   if (isSwapWindowOpen && fromToken) {
+  //     debouncedHandleGetRate(fromAmount);
+  //   }
+  // }, [isSwapWindowOpen, fromToken]);
 
   const handleSwapTokens = () => {
     setFromToken(toToken);
     setToToken(fromToken);
     setFromAmount(toAmount);
     setToAmount(fromAmount);
-    handleGetRate(toAmount);
+    debouncedHandleGetRate(toAmount);
   };
 
   return {
@@ -248,8 +232,6 @@ export const useSwapWindowLogic = () => {
       handleSelectToToken,
       handleBackToSwap,
       handleSwapTokens,
-      handleCustomTokenAddressChange,
-      handleAddCustomToken,
     },
     state: {
       fromAmount,
@@ -267,8 +249,6 @@ export const useSwapWindowLogic = () => {
       isSwapButtonDisabled: !fromToken || !toToken || !fromAmount || isLoading || (fromToken && Number(fromAmount) > fromToken.balance),
       isNoTokensToSwap: fromTokens.length === 0,
       currentView,
-      customTokenAddress,
-      customTokenInfo,
     },
   };
 };

@@ -74,7 +74,7 @@ export const TransactionDetailsWindow = () => {
             <Flex width="100%" justify="space-between">
               <Typography.Text text="Commission" type="secondary" />
               <Typography.Text
-                text={`${state.transaction?.fee.toFixed(4)} ${state.transaction?.currency} (${state.transaction?.fee_usd.toFixed(4)} $)`}
+                text={`${state.transaction?.fee.toFixed(4)} ${networkSymbol[state.transaction?.network]} (${state.transaction?.fee_usd.toFixed(4)} $)`}
               />
             </Flex>
           )}
