@@ -95,6 +95,13 @@ export const walletApi = api.injectEndpoints({
         body,
       }),
     }),
+
+    getTokenExtendedInfo: build.query<ApiResponse<types.GetTokenExtendedInfoResult>, types.GetTokenPriceParams>({
+      query: (params) => ({
+        url: `/wallets/token/extended-info`,
+        params,
+      }),
+    }),
   }),
 });
 
@@ -111,4 +118,5 @@ export const {
   useGetWalletTransactionsQuery,
   useSwapMutation,
   useLazyGetTokenPriceQuery,
+  useGetTokenExtendedInfoQuery,
 } = walletApi;

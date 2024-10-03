@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { UseSwapWindowLogic } from '../lib/hooks/useSwapWindowLogic';
 import { WindowHeader } from '@/shared/ui/Header/WindowHeader';
-import { getTokenImage } from '@/fsdpages/WalletPage';
 import { Window } from '@/shared/ui/Window/Window';
 import { Button } from '@/shared/ui/Button/Button';
+import { Typography } from '@/shared/ui/Typography/Typography';
 import Image from 'next/image';
 import styles from './PrepareSwapWindow.module.scss';
-import swapIcon from '@/shared/assets/icons/swap-icon.svg'
-import arrowIcon from '@/shared/assets/icons/arrow-icon.svg'
-import { Input } from '@/shared/ui/Input/Input';
+import swapIcon from '@/shared/assets/icons/swap-icon.svg';
+import TokenBlock from './TokenBlock'; 
 
 interface PrepareSwapWindowProps {
   logic: UseSwapWindowLogic;
@@ -16,95 +15,59 @@ interface PrepareSwapWindowProps {
 
 export const PrepareSwapWindow: React.FC<PrepareSwapWindowProps> = ({ logic }) => {
   const { flow, state } = logic;
+  const [showTokenInfo, setShowTokenInfo] = useState(false);
 
-  const TokenBlock = ({ isFrom }: { isFrom: boolean }) => {
-    const token = isFrom ? state.fromToken : state.toToken;
-    const amount = isFrom ? state.fromAmount : state.toAmount;
-    const usdAmount = isFrom
-      ? (Number(state.fromAmount) * (state.fromToken?.price || 0)).toFixed(2)
-      : (Number(state.toAmount) * (state.toToken?.price || 0)).toFixed(2);
-
-    return (
-      <div className={styles.tokenBlock}>
-        <div className={styles.label}>{isFrom ? "You give" : "You receive"}</div>
-        <div className={styles.tokenInfo}>
-          <div className={styles.amountInfo}>
-            <Input
-               id="fromAmount"
-               name="fromAmount"
-               type="number"
-               value={amount}
-               onChange={flow.handleFromAmountChange}
-               placeholder="0"
-               className={styles.amountInput}
-               readonly={!isFrom}
-            />
-            <div className={styles.usdAmount}>{usdAmount} $</div>
-          </div>
-          <div className={styles.tokenSelector} onClick={isFrom ? flow.handleOpenSelectFromTokenModal : flow.handleOpenSelectToTokenModal}>
-            {token && (
-              <Image 
-                src={getTokenImage(token)} 
-                alt={`${token.symbol} icon`} 
-                width={24} 
-                height={24} 
-              />
-            )}
-            <span>{token ? token.symbol : "Token"}</span>
-            <span className={styles.arrow}>
-                <Image src={arrowIcon.src} alt='' />
-            </span>
-          </div>
-        </div>
-        <div className={styles.balance}>
-          {isFrom ? `${token?.balance?.toFixed(2) || '0.00'} ${token?.symbol || ''}` : `${token?.balance?.toFixed(2) || '0.00'} ${token?.symbol || ''}`}
-        </div>
-        {isFrom && (
-          <div className={styles.percentButtons}>
-            {['25%', '50%', '75%', 'Max'].map((percent, index) => (
-              <Button
-                key={percent}
-                onClick={() => {
-                  if (index === 3) {
-                    flow.handleMaxButtonClick();
-                  } else {
-                    const amount = state.fromToken ? (state.fromToken.balance * (index + 1) * 0.25).toFixed(6) : '0';
-                    flow.handleFromAmountChange({ target: { value: amount } } as React.ChangeEvent<HTMLInputElement>);
-                  }
-                }}
-                className={styles.percentButton}
-              >
-                {percent}
-              </Button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
+  const handleFromAmountChange = useCallback(flow.handleFromAmountChange, [flow]);
 
   return (
     <Window 
-    isOpen={state.isSwapWindowOpen}
-    btnText="Continue"
-    btnOnClick={flow.handleOpenConfirmWindow}
-    isBtnActive={!state.isSwapButtonDisabled}
-    isBtnDisabled={state.isSwapButtonDisabled}
-  >
-    
+      isOpen={state.isSwapWindowOpen}
+      btnText="Continue"
+      btnOnClick={flow.handleOpenConfirmWindow}
+      isBtnActive={!state.isSwapButtonDisabled}
+      isBtnDisabled={state.isSwapButtonDisabled}
+    >
       <div className={styles.swapWindowWrapper}>
-      <WindowHeader title="Swap" isLoading={state.isLoading} />
+        <WindowHeader title="Swap" isLoading={state.isLoading} />
         <div className={styles.content}>
-          <TokenBlock isFrom={true} />
+          <TokenBlock 
+            isFrom={true}
+            token={state.fromToken}
+            amount={state.fromAmount}
+            usdAmount={state.fromToken ? (Number(state.fromAmount) * (state.fromToken.price || 0)).toFixed(2) : '0.00'}
+            onAmountChange={handleFromAmountChange}
+            onTokenSelect={flow.handleOpenSelectFromTokenModal}
+            onMaxClick={flow.handleMaxButtonClick}
+          />
           <div className={styles.swapButtonWrapper}>
             <div className={styles.swapButton} onClick={flow.handleSwapTokens}>
-            <Image src={swapIcon.src} alt='' />
+              <Image src={swapIcon} alt='' width={24} height={24} />
             </div>
           </div>
-          <TokenBlock isFrom={false} />
-          {state.rate > 0 && (
+          <TokenBlock 
+            isFrom={false}
+            token={state.toToken}
+            amount={state.toAmount}
+            usdAmount={state.toToken ? (Number(state.toAmount) * (state.toToken.price || 0)).toFixed(2) : '0.00'}
+            onTokenSelect={flow.handleOpenSelectToTokenModal}
+            showTokenInfoButton={state.toToken !== undefined}
+            onShowTokenInfo={() => setShowTokenInfo(!showTokenInfo)}
+            showTokenInfo={showTokenInfo}
+          />
+          {showTokenInfo && state.tokenExtendedInfo && (
+            <div className={styles.tokenInfoBlock}>
+              <Typography.Text text={`Total Supply: ${state.tokenExtendedInfo.total_supply?.toLocaleString() || 'N/A'}`} />
+              <Typography.Text text={`Max Supply: ${state.tokenExtendedInfo.max_supply?.toLocaleString() || 'N/A'}`} />
+              <Typography.Text text={`Market Cap: $${state.tokenExtendedInfo.market_cap?.toLocaleString() || 'N/A'}`} />
+              <Typography.Text text={`Price: $${state.tokenExtendedInfo.price?.toFixed(6) || 'N/A'}`} />
+              <Typography.Text text={`24h Change: ${state.tokenExtendedInfo.percent_change_24h?.toFixed(2) || 'N/A'}%`} />
+              <Typography.Text text={`7d Change: ${state.tokenExtendedInfo.percent_change_7d?.toFixed(2) || 'N/A'}%`} />
+              <Typography.Text text={`30d Change: ${state.tokenExtendedInfo.percent_change_30d?.toFixed(2) || 'N/A'}%`} />
+            </div>
+          )}
+          {state.rate > 0 && state.fromToken && state.toToken && (
             <div className={styles.rate}>
-              Best price: 1 {state.fromToken?.symbol} = {state.rate.toFixed(6)} {state.toToken?.symbol}
+              Best price: 1 {state.fromToken.symbol} = {state.rate.toFixed(6)} {state.toToken.symbol}
             </div>
           )}
         </div>

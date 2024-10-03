@@ -30,6 +30,19 @@ export interface GetTokenInfoResult {
   icon: string;
 }
 
+export interface GetTokenExtendedInfoResult {
+  id: number;
+  name: string;
+  symbol: string;
+  total_supply: number | null;
+  max_supply: number | null;
+  market_cap: number;
+  price: number;
+  percent_change_24h: number;
+  percent_change_7d: number;
+  percent_change_30d: number;
+}
+
 export interface GetTokenPriceParams {
   network: Network;
   symbol?: string;
