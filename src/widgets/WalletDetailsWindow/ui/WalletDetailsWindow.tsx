@@ -48,7 +48,7 @@ export const WalletDetailsWindow = () => {
           <CopyFillIcon width={18} height={18} fill="var(--secondaryText)" style={{ minWidth: '18px' }} />
         </Field>
 
-        <Field label="Private key" justify="space-between" copyValue={state.openedWallet?.private_key} onCopyLabel="Address copied" gap={15}>
+        <Field label="Private key" justify="space-between" copyValue={state.openedWallet?.private_key} onCopyLabel="Private key copied" gap={15}>
           <Typography.Text text={state.openedWallet?.private_key} wrap="nowrap" width="85%" weight={350} fontSize={17} />
           <CopyFillIcon width={18} height={18} fill="var(--secondaryText)" style={{ minWidth: '18px' }} />
         </Field>

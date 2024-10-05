@@ -79,3 +79,23 @@ export interface SwapParams {
   to_token_id: string;
   amount: number;
 }
+
+export interface GetHistoricalQuotesParams {
+  id:string;
+  address?: string;
+  symbol?: string;  
+  timeStart?: string;
+  timeEnd?: string;
+  count?: number;
+  interval?: string;
+  convert?: string;
+}
+
+export interface GetHistoricalQuotesResult {
+  id: string;
+  name: string;
+  quotes: {
+    timestamp: string;
+    price: number;
+  }[];
+}

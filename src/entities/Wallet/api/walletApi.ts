@@ -95,10 +95,23 @@ export const walletApi = api.injectEndpoints({
         body,
       }),
     }),
-
     getTokenExtendedInfo: build.query<ApiResponse<types.GetTokenExtendedInfoResult>, types.GetTokenPriceParams>({
       query: (params) => ({
         url: `/wallets/token/extended-info`,
+        params,
+      }),
+    }),
+    estimateGas: build.mutation<ApiResponse<number>, types.SwapParams>({
+      query: (body) => ({
+        url: `/wallets/estimate-swap-fee`,
+        method: 'POST',
+        body,
+      }),
+    }),
+
+    getHistoricalQuotes: build.query<ApiResponse<types.GetHistoricalQuotesResult>, types.GetHistoricalQuotesParams>({
+      query: (params) => ({
+        url: `/wallets/token/historical-quotes`,
         params,
       }),
     }),
@@ -119,4 +132,7 @@ export const {
   useSwapMutation,
   useLazyGetTokenPriceQuery,
   useGetTokenExtendedInfoQuery,
+  useEstimateGasMutation,
+  useGetHistoricalQuotesQuery,
+  useLazyGetHistoricalQuotesQuery,
 } = walletApi;

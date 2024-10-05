@@ -18,7 +18,12 @@ export const useSwapWindowLogic = () => {
   const [currentView, setCurrentView] = useState<'swap' | 'selectFromToken' | 'selectToToken'>('swap');
   const [tokenExtendedInfo, setTokenExtendedInfo] = useState<any>(null);
   const [isTokenInfoLoading, setIsTokenInfoLoading] = useState<boolean>(false);
+  const [getHistoricalQuotesRequest] = walletApi.useLazyGetHistoricalQuotesQuery();
+  const [historicalData, setHistoricalData] = useState<{ timestamp: string; price: number }[]>([]);
 
+ //const [estimatedGas, setEstimatedGas] = useState<number | null>(null);
+  
+  //const [estimateGas, { isLoading: isEstimatingGas }] = walletApi.useEstimateGasMutation();
   const [getTokenPriceRequest] = walletApi.useLazyGetTokenPriceQuery();
   const [swapRequest, { isLoading: isSwapLoading }] = walletApi.useSwapMutation();
   const [getWalletsRequest] = walletApi.useLazyGetWalletsQuery();
@@ -37,6 +42,67 @@ export const useSwapWindowLogic = () => {
     selectedWallet?.tokens ? selectedWallet.tokens : [],
     [selectedWallet]
   );
+
+  // const handleEstimateGas = useDebounce(async () => {
+  //   try {
+  //     if (!fromToken || !toToken || !selectedWallet || !fromAmount) return;
+
+  //     const result = await estimateGas({
+  //       wallet_id: selectedWallet.id,
+  //       from_token_id: fromToken.id,
+  //       to_token_id: toToken.id,
+  //       amount: Number(fromAmount),
+  //     }).unwrap();
+
+  //     if (result.ok && result.data !== undefined) {
+  //       setEstimatedGas(result.data);
+  //     }
+  //   } catch (e) {
+  //     errorToast('Failed to estimate gas fee');
+  //   }
+  // }, 350);
+
+  // useEffect(() => {
+  //   if (fromToken && toToken && fromAmount && selectedWallet) {
+  //     handleEstimateGas();
+  //   }
+  // }, [fromToken, toToken, fromAmount, selectedWallet]);
+
+  const handleGetHistoricalQuotes = useDebounce(async (token: Token) => {
+    try {
+      setIsLoading(true);
+      const result = await getHistoricalQuotesRequest({
+        id: token.id,
+        symbol: token.symbol,
+        address: token.contract,
+        timeStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        timeEnd: new Date().toISOString(),
+        interval: '1d',
+        convert: 'USD',
+      }).unwrap();
+
+      console.log('Historical quotes result:', result);
+
+      if (result.ok && result.data && Array.isArray(result.data.quotes)) {
+        setHistoricalData(result.data.quotes);
+      } else {
+        console.log('No historical data available or invalid response structure');
+        setHistoricalData([]);
+      }
+    } catch (e) {
+      console.error('Error in getHistoricalQuotes:', e);
+      errorToast('Failed to get historical quotes');
+      setHistoricalData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, 350);
+
+  useEffect(() => {
+    if (toToken) {
+      handleGetHistoricalQuotes(toToken);
+    }
+  }, [toToken]);
 
   const handleGetRate = useDebounce(async (amount: string) => {
     try {
@@ -236,6 +302,8 @@ export const useSwapWindowLogic = () => {
       currentView,
       tokenExtendedInfo,
       isTokenInfoLoading,
+      historicalData,
+      //estimatedGas
     },
   };
 };

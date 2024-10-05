@@ -1,3 +1,4 @@
+import React from 'react';
 import { UseSwapWindowLogic } from '../lib/hooks/useSwapWindowLogic';
 import { Typography } from '@/shared/ui/Typography/Typography';
 import { WindowHeader } from '@/shared/ui/Header/WindowHeader';
@@ -5,7 +6,6 @@ import { Window } from '@/shared/ui/Window/Window';
 import { Flex } from '@/shared/ui/Flex/Flex';
 import Image from 'next/image';
 import { getTokenImage } from '@/fsdpages/WalletPage';
-import React from 'react';
 import { Token } from '@/entities/Wallet';
 
 export interface ConfirmSwapWindowProps {
@@ -16,7 +16,7 @@ export const ConfirmSwapWindow: React.FC<ConfirmSwapWindowProps> = (props) => {
   const { flow, state } = props.logic;
 
   const renderTokenBlock = (amount: string, token: Token | undefined, isFrom: boolean) => (
-    <Flex align="center" gap={12} style={{ backgroundColor: '#f5f5f5', borderRadius: '12px', padding: '12px', width: '100%' }}>
+    <Flex align="center" gap={12} style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '12px', width: '100%' }}>
       {token && (
         <Image src={getTokenImage(token)} alt={`${token.symbol} icon`} width={32} height={32} />
       )}
@@ -37,7 +37,7 @@ export const ConfirmSwapWindow: React.FC<ConfirmSwapWindowProps> = (props) => {
           {renderTokenBlock(state.toAmount, state.toToken, false)}
         </Flex>
 
-        <Flex width="100%" direction="column" gap={16} style={{ backgroundColor: '#f5f5f5', borderRadius: '12px', padding: '12px' }}>
+        <Flex width="100%" direction="column" gap={16} style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '12px' }}>
           <Flex width="100%" justify="space-between">
             <Typography.Text text="Rate" type="secondary" />
             <Typography.Text text={`1 ${state.fromToken?.symbol} = ${state.rate.toFixed(6)} ${state.toToken?.symbol}`} />

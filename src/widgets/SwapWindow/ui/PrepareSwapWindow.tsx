@@ -3,11 +3,12 @@ import { UseSwapWindowLogic } from '../lib/hooks/useSwapWindowLogic';
 import { WindowHeader } from '@/shared/ui/Header/WindowHeader';
 import { Window } from '@/shared/ui/Window/Window';
 import { Button } from '@/shared/ui/Button/Button';
-import { Typography } from '@/shared/ui/Typography/Typography';
 import Image from 'next/image';
 import styles from './PrepareSwapWindow.module.scss';
 import swapIcon from '@/shared/assets/icons/swap-icon.svg';
-import TokenBlock from './TokenBlock'; 
+import TokenBlock from './TokenBlock';
+import TokenInfoBlock from './TokenInfoBlock';
+import { getTokenImage } from '@/fsdpages/WalletPage';
 
 interface PrepareSwapWindowProps {
   logic: UseSwapWindowLogic;
@@ -50,24 +51,21 @@ export const PrepareSwapWindow: React.FC<PrepareSwapWindowProps> = ({ logic }) =
             amount={state.toAmount}
             usdAmount={state.toToken ? (Number(state.toAmount) * (state.toToken.price || 0)).toFixed(2) : '0.00'}
             onTokenSelect={flow.handleOpenSelectToTokenModal}
-            showTokenInfoButton={state.toToken !== undefined}
+            showTokenInfoButton={!!state.toToken}
             onShowTokenInfo={() => setShowTokenInfo(!showTokenInfo)}
             showTokenInfo={showTokenInfo}
           />
-          {showTokenInfo && state.tokenExtendedInfo && (
-            <div className={styles.tokenInfoBlock}>
-              <Typography.Text text={`Total Supply: ${state.tokenExtendedInfo.total_supply?.toLocaleString() || 'N/A'}`} />
-              <Typography.Text text={`Max Supply: ${state.tokenExtendedInfo.max_supply?.toLocaleString() || 'N/A'}`} />
-              <Typography.Text text={`Market Cap: $${state.tokenExtendedInfo.market_cap?.toLocaleString() || 'N/A'}`} />
-              <Typography.Text text={`Price: $${state.tokenExtendedInfo.price?.toFixed(6) || 'N/A'}`} />
-              <Typography.Text text={`24h Change: ${state.tokenExtendedInfo.percent_change_24h?.toFixed(2) || 'N/A'}%`} />
-              <Typography.Text text={`7d Change: ${state.tokenExtendedInfo.percent_change_7d?.toFixed(2) || 'N/A'}%`} />
-              <Typography.Text text={`30d Change: ${state.tokenExtendedInfo.percent_change_30d?.toFixed(2) || 'N/A'}%`} />
-            </div>
+          {showTokenInfo && state.toToken && state.tokenExtendedInfo && (
+            <TokenInfoBlock 
+              token={state.toToken}
+              tokenExtendedInfo={state.tokenExtendedInfo}
+              tokenImage={getTokenImage(state.toToken)}
+              historicalData={state.historicalData}
+            />
           )}
           {state.rate > 0 && state.fromToken && state.toToken && (
             <div className={styles.rate}>
-              Best price: 1 {state.fromToken.symbol} = {state.rate.toFixed(6)} {state.toToken.symbol}
+              Best price: 1 {state.fromToken.symbol} ≈ {state.rate.toFixed(6)} {state.toToken.symbol}
             </div>
           )}
         </div>
