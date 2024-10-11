@@ -8,7 +8,7 @@ import { CopyFillIcon } from '@/shared/assets/icons/CopyFillIcon';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { SuccessFillIcon } from '@/shared/assets/icons/SuccessFillIcon';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ChartOptions } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 
 ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -48,42 +48,83 @@ interface TokenInfoBlockProps {
               y: data.price
             })),
             borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
           }
         ]
       };
     
-      const chartOptions = {
+      const chartOptions: ChartOptions<'line'> = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'top' as const,
+            display: false,
           },
-          title: {
-            display: true,
-            text: 'Price History',
+          tooltip: {
+            mode: 'index' as const,
+            intersect: false,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += '$' + context.parsed.y.toFixed(8);
+                }
+                return label;
+              },
+              title: function(tooltipItems) {
+                if (tooltipItems[0].parsed.x) {
+                  return new Date(tooltipItems[0].parsed.x).toLocaleString();
+                }
+                return '';
+              }
+            }
           },
         },
         scales: {
           x: {
-            type: 'time' as const,
+            type: 'time',
             time: {
-              unit: 'day' as const
+              unit: 'day',
+              displayFormats: {
+                day: 'MMM d'
+              }
             },
-            title: {
-              display: true,
-              text: 'Date'
+            grid: {
+              display: false,
+            },
+            ticks: {
+              maxTicksLimit: 7,
             }
           },
           y: {
-            type: 'linear' as const,
-            title: {
-              display: true,
-              text: 'Price (USD)'
+            beginAtZero: false,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)',
+            },
+            ticks: {
+              maxTicksLimit: 5,
+              callback: function(value) {
+                if (typeof value === 'number') {
+                  return '$' + value.toFixed(6);
+                }
+                return '$' + value;
+              }
             }
           }
-        }
+        },
+        interaction: {
+          mode: 'nearest' as const,
+          axis: 'x' as const,
+          intersect: false
+        },
       };
+    
     
   
     return (

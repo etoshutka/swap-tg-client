@@ -61,6 +61,11 @@ export interface AddWalletTokenParams {
   contract: string;
 }
 
+export interface DeleteWalletTokenParams {
+  wallet_id: string;  
+  token_id: string;   
+}
+
 export interface TransferParams {
   amount: number;
   currency: string;
@@ -78,6 +83,7 @@ export interface SwapParams {
   from_token_id: string;
   to_token_id: string;
   amount: number;
+  slippageBps?: number;
 }
 
 export interface GetHistoricalQuotesParams {

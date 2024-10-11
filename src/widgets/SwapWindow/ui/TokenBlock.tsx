@@ -63,38 +63,41 @@ const TokenBlock: React.FC<TokenBlockProps> = ({
           </span>
         </div>
       </div>
-      <div className={styles.balance}>
-        {token ? `${token.balance.toFixed(2)} ${token.symbol}` : 'Select a token'}
-      </div>
-      <div className={styles.buttonContainer}>
-        {isFrom && (
-          <div className={styles.percentButtons}>
-            {['25%', '50%', '75%', 'Max'].map((percent, index) => (
-              <Button
-                key={percent}
-                onClick={() => {
-                  if (index === 3 && onMaxClick) {
-                    onMaxClick();
-                  } else if (onAmountChange) {
-                    const newAmount = (token ? (token.balance * (index + 1) * 0.25).toFixed(6) : '0');
-                    onAmountChange({ target: { value: newAmount } } as React.ChangeEvent<HTMLInputElement>);
-                  }
-                }}
-                className={styles.percentButton}
+      <div className={styles.bottomContainer}>
+        <div className={styles.buttonWrapper}>
+          {isFrom ? (
+            <div className={styles.percentButtons}>
+              {['25%', '50%', '75%', 'Max'].map((percent, index) => (
+                <button
+                  key={percent}
+                  onClick={() => {
+                    if (index === 3 && onMaxClick) {
+                      onMaxClick();
+                    } else if (onAmountChange) {
+                      const newAmount = (token ? (token.balance * (index + 1) * 0.25).toFixed(6) : '0');
+                      onAmountChange({ target: { value: newAmount } } as React.ChangeEvent<HTMLInputElement>);
+                    }
+                  }}
+                  className={styles.actionButton}
+                >
+                  {percent}
+                </button>
+              ))}
+            </div>
+          ) : (
+            showTokenInfoButton && (
+              <button 
+                onClick={onShowTokenInfo}
+                className={styles.actionButton}
               >
-                {percent}
-              </Button>
-            ))}
-          </div>
-        )}
-        {showTokenInfoButton && (
-          <Button 
-            onClick={onShowTokenInfo}
-            className={styles.tokenInfoButton}
-          >
-            {showTokenInfo ? 'Hide' : 'Show'} Info
-          </Button>
-        )}
+                {showTokenInfo ? 'Hide' : 'Show'} Info
+              </button>
+            )
+          )}
+        </div>
+        <div className={styles.balance}>
+          {token ? `${token.balance.toFixed(2)} ${token.symbol}` : ''}
+        </div>
       </div>
     </div>
   );

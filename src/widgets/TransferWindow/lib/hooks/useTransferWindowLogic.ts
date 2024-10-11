@@ -117,7 +117,7 @@ export const useTransferWindowLogic = () => {
 
     const tonAddressRegex: RegExp = /^(EQ|UQ)[a-zA-Z0-9_-]{46}$/;
     const ethAddressRegex: RegExp = /^0x[a-fA-F0-9]{40}$/;
-    const solAddressRegex: RegExp = /^([a-zA-Z0-9]{32}|[a-zA-Z0-9]{44})$/;
+    const solAddressRegex: RegExp = /^([a-zA-Z0-9]{32}|[a-zA-Z0-9]{43}|[a-zA-Z0-9]{44})$/;
     const bscAddressRegex: RegExp = /^0x[a-fA-F0-9]{40}$/;
 
     let regex: RegExp = ethAddressRegex;

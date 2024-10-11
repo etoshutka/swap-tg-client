@@ -48,7 +48,7 @@ export const RefWindow = () => {
                 <Typography.Text text="Available balance" type="secondary" />
                 <Flex align="center" gap={6}>
                   <Image src={UsdtIcon} alt="usdt-icon" />
-                  <Typography.Text text="0" fontSize={18} />
+                  <Typography.Text text={state.refProgram?.balance ?? 0} fontSize={18} />
                 </Flex>
               </Flex>
               <Flex bg="var(--withdrawalBtnBg)" padding="0 16px" height="36px" align="center" radius="8px" gap={8}>

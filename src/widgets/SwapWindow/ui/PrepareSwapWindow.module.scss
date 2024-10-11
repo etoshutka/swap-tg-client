@@ -5,6 +5,154 @@
   width: 100%;
 }
 
+.headerWrapper {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.slippageContainer {
+  position: relative;
+}
+
+.autoButton {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(233, 237, 242, 1);
+  }
+
+  img {
+    margin-left: 6px;
+  }
+}
+
+.slippageOptions {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  width: 280px;
+  z-index: 10;
+}
+
+.slippageTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.slippageButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  button {
+    flex: 1;
+    background-color: rgba(233, 237, 242, 1);
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-right: 8px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &:hover {
+      background-color: #e0e0e0;
+    }
+
+    &.activeSlippage {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+  }
+}
+
+.customSlippage {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+
+  input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  span {
+    margin-left: 8px;
+    font-size: 14px;
+  }
+}
+
+.slippageActions {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &.cancelButton {
+      background-color: rgba(233, 237, 242, 1);
+      color: #333;
+      margin-right: 8px;
+
+      &:hover {
+        background-color: #e0e0e0;
+      }
+    }
+
+    &.saveButton {
+      background-color: #007bff;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+}
+
 .content {
   flex-grow: 1;
   padding: 16px;
@@ -14,28 +162,27 @@
 }
 
 .tokenBlock {
-  background-color: rgba(255, 255, 255, 1);
-  border-radius: 12px;
+  background-color: #ffffff;
+  border-radius: 20px;
   padding: 16px;
-  margin-bottom: 5px;
-  position: relative;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .label {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 12px;
+  font-size: 14px;
+  color: #333333;
+  margin-bottom: 8px;
 }
 
 .tokenInfo {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .amountInfo {
-  display: flex;
-  flex-direction: column;
   flex-grow: 1;
   margin-right: 12px;
 }
@@ -57,7 +204,7 @@
 
 .usdAmount {
   font-size: 14px;
-  color: #666;
+  color: #999999;
   margin-top: 4px;
 }
 
@@ -65,9 +212,10 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 20px;
-  background-color: rgba(255, 255, 255, 1);
+  background-color: white;
+  transition: background-color 0.2s;
 
   img {
     margin-right: 8px;
@@ -75,54 +223,67 @@
 
   span {
     font-weight: bold;
+    color: #333333;
   }
 
   .arrow {
     margin-left: 5px;
-    align-items: center;
     display: flex;
+    align-items: center;
+  }
+
+  &:hover {
+    background-color: #f0f0f0;
   }
 }
 
-.balance {
-  font-size: 14px;
-  color: #666;
-  margin-top: 8px;
-  text-align: right;
+.bottomContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.buttonWrapper {
+  flex: 1;
+  margin-right: 12px;
 }
 
 .percentButtons {
   display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
+  gap: 6px;
 }
 
-.percentButton {
-  flex: 1;
-  margin: 0 4px;
-  padding: 8px;
-  border-radius: 20px;
-  background-color: #e0e0e0;
-  border: none;
+.actionButton {
+  padding: 4px 8px;
+  background-color: rgba(233, 237, 242, 1);
   cursor: pointer;
-  font-weight: bold;
+  font-size: 11px;
+  color: #666666;
+  transition: background-color 0.2s;
+  border-radius: 12px;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 40px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+
   &:hover {
-    background-color: #d0d0d0;
+    background-color: #f0f0f0;
+  }
+
+  &:active {
+    background-color: #e8e8e8;
   }
 }
 
-.tokenInfoButton {
-  flex: 1;
-  margin: 0 4px;
-  padding: 8px;
-  border-radius: 20px;
-  background-color: #e0e0e0;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  &:hover {
-    background-color: #d0d0d0;
-  }
+.balance {
+  font-size: 12px;
+  color: #999999;
+  white-space: nowrap;
 }
 
 .swapButtonWrapper {
@@ -152,11 +313,6 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 3px;
-}
-
-.tokenInfoButton {
-  max-width: 100px;
-  margin-left: 8px;
 }
 
 .tokenInfoBlock {

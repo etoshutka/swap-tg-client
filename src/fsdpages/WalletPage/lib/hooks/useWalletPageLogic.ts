@@ -1,6 +1,6 @@
 'use client';
 
-import { getIsLoading, getSelectedNetwork, getSelectedWallet, Network, Wallet, walletActions } from '@/entities/Wallet';
+import { getIsLoading, getSelectedNetwork, getSelectedWallet, Network, Token, Wallet, walletActions } from '@/entities/Wallet';
 import { getIsGlobalLoading, getWindowsOpen, globalActions, GlobalWindow, GlobalWindowType } from '@/entities/Global';
 import { getTgWebAppSdk } from '@/shared/lib/helpers/getTgWebAppSdk';
 import { COOKIES_KEY_SELECTED_NETWORK, COOKIES_KEY_SELECTED_WALLET, COOKIES_KEY_TELEGRAM_ID } from '@/shared/consts/cookies';
@@ -10,9 +10,12 @@ import { GetUserParams } from '@/entities/User';
 import { useEffect, useState } from 'react';
 import { userApi } from '@/entities/User';
 import cookies from 'js-cookie';
+import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 
 export const useWalletPageLogic = () => {
   const dispatch = useDispatch();
+  const { errorToast, successToast } = useToasts();
+
 
   const [profileRequestParams, setProfileRequestParams] = useState<GetUserParams | null>();
   const [getWalletRequest] = walletApi.useLazyGetWalletQuery();
@@ -26,6 +29,29 @@ export const useWalletPageLogic = () => {
 
   const { data: userData, ...userDataResult } = userApi.useGetUserQuery(profileRequestParams!, { skip: !profileRequestParams });
   const [getWalletsRequest, getWalletsResult] = walletApi.useLazyGetWalletsQuery();
+  const [deleteWalletToken] = walletApi.useDeleteWalletTokenMutation();
+
+  const handleDeleteToken = async (token: Token) => {
+    if (!selectedWallet) return;
+
+    try {
+      const result = await deleteWalletToken({
+        wallet_id: selectedWallet.id,
+        token_id: token.id,
+      }).unwrap();
+
+      if (result.ok) {
+        successToast('Token deleted');
+        // Обновляем список кошельков после успешного удаления
+        getWalletsRequest();
+      } else {
+        errorToast('Failed to delete token');
+      }
+    } catch (e) {
+      console.error('Error deleting token:', e);
+      errorToast('Failed to delete token');
+    }
+  };
 
   const getWallets = async () => {
     const walletsData = await getWalletsRequest().unwrap();
@@ -125,6 +151,7 @@ export const useWalletPageLogic = () => {
   return {
     flow: {
       handleBackButtonClick,
+      handleDeleteToken
     },
     state: {
       isLoading: userDataResult.isLoading || getWalletsResult.isLoading || isLoading || isGlobalLoading,

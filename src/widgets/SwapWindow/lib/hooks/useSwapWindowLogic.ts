@@ -32,6 +32,11 @@ export const useSwapWindowLogic = () => {
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
   const isSwapWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.Swap);
   const isConfirmSwapWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.ConfirmSwap);
+  const [slippage, setSlippage] = useState<number>(2);
+
+  const updateSlippage = (newSlippage: number) => {
+    setSlippage(newSlippage);
+  };
 
   const fromTokens = useMemo(() => 
     selectedWallet?.tokens ? selectedWallet.tokens.filter((t) => t.balance > 0) : [],
@@ -145,8 +150,8 @@ export const useSwapWindowLogic = () => {
       console.log('Query params:', { network: token.network, contract: token.contract });
       setIsTokenInfoLoading(true);
       const result = await getTokenExtendedInfoRequest({
-        symbol: token.symbol,  // Добавьте это
-        contract: token.contract,  // Измените contract на address
+        symbol: token.symbol,  
+        contract: token.contract,
         network: token.network
       }).unwrap();
 
@@ -175,11 +180,15 @@ export const useSwapWindowLogic = () => {
       setIsLoading(true)
       if (!fromToken || !toToken || !selectedWallet || !fromAmount) return;
 
+      const slippageBps = Math.round(slippage * 100); // Преобразуем проценты в базисные пункты
+      console.log("Slippage (bps) frontend:", slippageBps);
+
       const result = await swapRequest({
         wallet_id: selectedWallet.id,
         from_token_id: fromToken.id,
         to_token_id: toToken.id,
         amount: Number(fromAmount),
+        slippageBps: slippageBps,
       }).unwrap();
 
       if (result.ok) {
@@ -283,6 +292,7 @@ export const useSwapWindowLogic = () => {
       handleSelectToToken,
       handleBackToSwap,
       handleSwapTokens,
+      updateSlippage,
     },
     state: {
       fromAmount,
@@ -303,6 +313,7 @@ export const useSwapWindowLogic = () => {
       tokenExtendedInfo,
       isTokenInfoLoading,
       historicalData,
+      slippage
       //estimatedGas
     },
   };

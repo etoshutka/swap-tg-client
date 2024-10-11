@@ -81,6 +81,15 @@ export const walletApi = api.injectEndpoints({
         body,
       }),
     }),
+
+    deleteWalletToken: build.mutation<ApiResponse<null>, types.DeleteWalletTokenParams>({
+      query: (body) => ({
+        url: `/wallets/token/delete`,
+        method: 'DELETE',
+        body,
+      }),
+    }),
+
     getWalletTransactions: build.query<ApiResponse<Transaction[]>, types.GetWalletTransactionsParams>({
       query: (params) => ({
         url: `/wallets/transactions`,
@@ -135,4 +144,5 @@ export const {
   useEstimateGasMutation,
   useGetHistoricalQuotesQuery,
   useLazyGetHistoricalQuotesQuery,
+  useDeleteWalletTokenMutation,
 } = walletApi;
