@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import styles from './WalletPageTokens.module.scss';
 import { Button } from '@/shared/ui/Button/Button';
 import { Flex } from '@/shared/ui/Flex/Flex';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletPageLogic } from '../../lib/hooks/useWalletPageLogic';
 
@@ -28,6 +28,10 @@ export const WalletPageTokens = () => {
   const handleAddTokenButtonClick = async (): Promise<void> => {
     dispatch(globalActions.addWindow({ window: GlobalWindow.AddToken }));
   };
+
+  useEffect(() => {
+    // Обновление списка токенов при изменении selectedWallet
+  }, [selectedWallet]);
 
   return (
     <Flex width="100%" direction="column" gap={12}>

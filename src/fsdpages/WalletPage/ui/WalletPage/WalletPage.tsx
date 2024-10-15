@@ -21,6 +21,7 @@ import { TransferWindow } from '@/widgets/TransferWindow';
 import { DepositWindow } from '@/widgets/DepositWindow';
 import { RefWindow } from '@/widgets/RefWindow';
 import { SwapWindow } from '@/widgets/SwapWindow';
+import { TokenDetailsWindow } from '../WalletPageToken/TokenDetailsWindow';
 
 export const WalletPage = () => {
   useWalletPageLogic();
@@ -47,6 +48,7 @@ export const WalletPage = () => {
       <TransactionDetailsWindow />
       <ImportWalletWindow />
       <CreateWalletWindow />
+      <TokenDetailsWindow/>
     </Page>
   );
 };

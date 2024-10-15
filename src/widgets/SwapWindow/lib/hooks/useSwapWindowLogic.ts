@@ -1,4 +1,4 @@
-import { getSelectedWallet, Network, Token, Wallet, walletApi } from '@/entities/Wallet';
+import { getSelectedToken, getSelectedWallet, Network, Token, Wallet, walletActions, walletApi } from '@/entities/Wallet';
 import { getIsWindowOpen, globalActions, GlobalWindow } from '@/entities/Global';
 import { useDebounce } from '@/shared/lib/hooks/useDebounce/useDebounce';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
@@ -8,6 +8,8 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 export const useSwapWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
   const dispatch = useDispatch();
+  const selectedToken = useSelector(getSelectedToken);
+
 
   const [fromToken, setFromToken] = useState<Token | undefined>();
   const [toToken, setToToken] = useState<Token | undefined>();
@@ -165,7 +167,7 @@ export const useSwapWindowLogic = () => {
     }
   }, 350);
 
-  const handleClearState = () => {
+  const handleClearState = useCallback(() => {
     setFromToken(undefined);
     setToToken(undefined);
     setFromAmount('');
@@ -173,7 +175,14 @@ export const useSwapWindowLogic = () => {
     setRate(0);
     setCurrentView('swap');
     setTokenExtendedInfo(null);
-  };
+    dispatch(walletActions.clearSelectedToken());
+  }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      handleClearState();
+    };
+  }, [handleClearState]);
 
   const handleSwapConfirm = async () => {
     try {
@@ -241,6 +250,7 @@ export const useSwapWindowLogic = () => {
   };
 
   const handleSelectFromToken = (token: Token) => {
+    console.log('Setting fromToken:', token);
     setFromToken(token);
     setCurrentView('swap');
     if (token.id === toToken?.id) {
@@ -251,6 +261,14 @@ export const useSwapWindowLogic = () => {
       handleGetRate(fromAmount);
     }
   };
+
+
+
+  useEffect(() => {
+    if (selectedToken) {
+      handleSelectFromToken(selectedToken);
+    }
+  }, [selectedToken]);
 
   const handleSelectToToken = (token: Token) => {
     setToToken(token);

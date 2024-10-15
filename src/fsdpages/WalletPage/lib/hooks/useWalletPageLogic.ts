@@ -42,7 +42,6 @@ export const useWalletPageLogic = () => {
 
       if (result.ok) {
         successToast('Token deleted');
-        // Обновляем список кошельков после успешного удаления
         getWalletsRequest();
       } else {
         errorToast('Failed to delete token');

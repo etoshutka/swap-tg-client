@@ -1,12 +1,15 @@
 'use client'
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Typography } from '@/shared/ui/Typography/Typography';
 import { getTokenImage } from '../../lib/helpers/getTokenImage';
 import { Flex } from '@/shared/ui/Flex/Flex';
-import { Token } from '@/entities/Wallet';
+import { Token, walletActions } from '@/entities/Wallet';
 import Image from 'next/image';
 import { useSwipeable } from 'react-swipeable';
 import Trash from '@/shared/assets/icons/trash.svg'
+import { globalActions, GlobalWindow } from '@/entities/Global';
+import { useDispatch } from 'react-redux';
+import { TokenDetailsWindow } from './TokenDetailsWindow'; // Убедитесь, что путь импорта правильный
 
 // Утилита для объединения refs
 const mergeRefs = (...refs: React.Ref<any>[]) => {
@@ -29,7 +32,9 @@ export interface WalletTokenProps {
 }
 
 export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteToken, ...props }) => {
+  const dispatch = useDispatch();
   const [isSwiped, setIsSwiped] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const deleteButtonWidth = 80; // ширина кнопки удаления
@@ -63,11 +68,18 @@ export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteTok
     trackTouch: true,
   });
 
-  const handleTokenClick = () => {
-    if (!isSwiped && props.onTokenClick) {
-      props.onTokenClick(token);
+  const handleTokenClick = useCallback(() => {
+    setShowDetails(false); 
+    if (!isSwiped) {
+      dispatch(walletActions.setSelectedToken(token));
+      setShowDetails(true);
+      dispatch(globalActions.addWindow({ window: GlobalWindow.TokenDetails }));
+      if (props.onTokenClick) {
+        props.onTokenClick(token);
+      }
     }
-  };
+  }, [isSwiped, dispatch, props.onTokenClick, token]);
+  
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -77,6 +89,12 @@ export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteTok
     setIsSwiped(false);
     updateTransform(0);
   };
+
+  const handleCloseDetails = useCallback(() => {
+    setShowDetails(false);
+    dispatch(globalActions.removeWindow(GlobalWindow.TokenDetails));
+    dispatch(walletActions.clearSelectedToken()); 
+  }, [dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,6 +109,9 @@ export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteTok
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  
+
 
   const mergedRef = useMemo(
     () => mergeRefs(wrapperRef, swipeableRef),
@@ -143,42 +164,45 @@ export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteTok
   );
 
   return (
-    <div 
-      ref={mergedRef}
-      {...swipeHandlers}
-      style={{ position: 'relative', overflow: 'hidden' }}
-    >
+    <>
       <div 
-        ref={contentRef}
-        style={{
-          transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-          willChange: 'transform'
-        }}
+        ref={mergedRef}
+        {...swipeHandlers}
+        style={{ position: 'relative', overflow: 'hidden' }}
       >
-        {renderTokenContent()}
+        <div 
+          ref={contentRef}
+          style={{
+            transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            willChange: 'transform'
+          }}
+        >
+          {renderTokenContent()}
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: `${deleteButtonWidth}px`,
+            background: 'var(--primaryBg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transform: `translateX(${isSwiped ? '0' : '100%'})`,
+            transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+          }}
+          onClick={handleDelete}
+        >
+          <Flex align="center" gap={8}>
+            <Image src={Trash} alt="" width={24} height={24} />
+            <Typography.Text text="Delete" type="secondary" />
+          </Flex>
+        </div>
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: `${deleteButtonWidth}px`,
-          background: 'var(--primaryBg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transform: `translateX(${isSwiped ? '0' : '100%'})`,
-          transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-        }}
-        onClick={handleDelete}
-      >
-        <Flex align="center" gap={8}>
-          <Image src={Trash} alt="" width={24} height={24} />
-          <Typography.Text text="Delete" type="secondary" />
-        </Flex>
-      </div>
-    </div>
+      {showDetails && <TokenDetailsWindow/>}
+    </>
   );
 };

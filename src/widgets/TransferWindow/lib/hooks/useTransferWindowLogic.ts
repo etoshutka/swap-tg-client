@@ -1,14 +1,15 @@
-import { getSelectedWallet, Network, Token, Wallet, walletApi } from '@/entities/Wallet';
+import { getSelectedToken, getSelectedWallet, Network, Token, Wallet, walletActions, walletApi } from '@/entities/Wallet';
 import { getIsWindowOpen, globalActions, GlobalWindow } from '@/entities/Global';
 import { useDebounce } from '@/shared/lib/hooks/useDebounce/useDebounce';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { networkSymbol } from '@/shared/consts/networkSymbol';
 import { useDispatch, useSelector } from 'react-redux';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export const useTransferWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
   const dispatch = useDispatch();
+  const selectedToken = useSelector(getSelectedToken);
 
   const [tokenToTransfer, setTokenToTransfer] = useState<Token | undefined>();
   const [balanceUsd, setBalanceUsd] = useState<number>(0);
@@ -46,15 +47,23 @@ export const useTransferWindowLogic = () => {
     }
   }, 350);
 
-  const handleClearState = () => {
+  const handleClearState = useCallback(() => {
     setRate(0);
     setAmount('');
     setToAddress('');
     setBalanceUsd(0);
     setTokenToTransfer(undefined);
+    dispatch(walletActions.clearSelectedToken());
     dispatch(globalActions.removeAllWindows());
-  };
+  }, [dispatch]);
+  
+  useEffect(() => {
+    return () => {
+      handleClearState();
+    };
+  }, [handleClearState]);
 
+  
   const handleTransferConfirm = async () => {
     try {
       setIsLoading(true);
@@ -79,10 +88,27 @@ export const useTransferWindowLogic = () => {
     }
   };
 
-  const handleTokenSelect = (token: Token) => {
+  useEffect(() => {
+    if (selectedToken) {
+      setTokenToTransfer(selectedToken);
+      handleGetRate('0');
+    }
+  }, [selectedToken]);
+
+  const handleTokenSelect = useCallback((token: Token) => {
+    console.log('Setting tokenToTransfer:', token);
     setTokenToTransfer(token);
+    dispatch(walletActions.setSelectedToken(token));
     dispatch(globalActions.addWindow({ window: GlobalWindow.PrepareTransfer }));
-  };
+  }, [dispatch]);
+
+
+
+  useEffect(() => {
+    return () => {
+      setTokenToTransfer(undefined); 
+    };
+  }, []);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsLoading(true);
