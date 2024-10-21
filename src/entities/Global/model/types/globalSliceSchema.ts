@@ -17,7 +17,8 @@ export enum GlobalWindow {
   ConfirmSwap = 'ConfirmSwap',
   SelectFromToken = 'SelectFromToken',
   SelectToToken = 'SelectToToken',
-  TokenDetails = 'TokenDetails'
+  TokenDetails = 'TokenDetails',
+  TokenInfo = 'TokenInfo'
 }
 
 export interface GlobalWindowType<T> {

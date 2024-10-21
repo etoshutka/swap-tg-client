@@ -7,15 +7,18 @@ import { COOKIES_KEY_SELECTED_NETWORK, COOKIES_KEY_SELECTED_WALLET, COOKIES_KEY_
 import { walletApi } from '@/entities/Wallet/api/walletApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { GetUserParams } from '@/entities/User';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { userApi } from '@/entities/User';
 import cookies from 'js-cookie';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 
+import { StateSchema } from '@/shared/lib/providers/StoreProvider/config/store';
+import { useWalletUpdater } from '@/shared/lib/hooks/useWalletUpdate/useWalletUpdate';
+
 export const useWalletPageLogic = () => {
   const dispatch = useDispatch();
   const { errorToast, successToast } = useToasts();
-
+  useWalletUpdater();
 
   const [profileRequestParams, setProfileRequestParams] = useState<GetUserParams | null>();
   const [getWalletRequest] = walletApi.useLazyGetWalletQuery();
@@ -26,6 +29,8 @@ export const useWalletPageLogic = () => {
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
   const openedWindows: GlobalWindowType<GlobalWindow>[] = useSelector(getWindowsOpen);
   const isLoading: boolean = useSelector(getIsLoading);
+ 
+
 
   const { data: userData, ...userDataResult } = userApi.useGetUserQuery(profileRequestParams!, { skip: !profileRequestParams });
   const [getWalletsRequest, getWalletsResult] = walletApi.useLazyGetWalletsQuery();
@@ -150,7 +155,7 @@ export const useWalletPageLogic = () => {
   return {
     flow: {
       handleBackButtonClick,
-      handleDeleteToken
+      handleDeleteToken,
     },
     state: {
       isLoading: userDataResult.isLoading || getWalletsResult.isLoading || isLoading || isGlobalLoading,

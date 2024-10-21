@@ -88,16 +88,14 @@ export const useSwapWindowLogic = () => {
         convert: 'USD',
       }).unwrap();
 
-      console.log('Historical quotes result:', result);
+      
 
       if (result.ok && result.data && Array.isArray(result.data.quotes)) {
         setHistoricalData(result.data.quotes);
       } else {
-        console.log('No historical data available or invalid response structure');
         setHistoricalData([]);
       }
     } catch (e) {
-      console.error('Error in getHistoricalQuotes:', e);
       errorToast('Failed to get historical quotes');
       setHistoricalData([]);
     } finally {
@@ -148,8 +146,6 @@ export const useSwapWindowLogic = () => {
 
   const handleGetTokenExtendedInfo = useDebounce(async (token: Token, network: Network) => {
     try {
-      console.log('Token:', token);
-      console.log('Query params:', { network: token.network, contract: token.contract });
       setIsTokenInfoLoading(true);
       const result = await getTokenExtendedInfoRequest({
         symbol: token.symbol,  
@@ -190,7 +186,6 @@ export const useSwapWindowLogic = () => {
       if (!fromToken || !toToken || !selectedWallet || !fromAmount) return;
 
       const slippageBps = Math.round(slippage * 100); // Преобразуем проценты в базисные пункты
-      console.log("Slippage (bps) frontend:", slippageBps);
 
       const result = await swapRequest({
         wallet_id: selectedWallet.id,
@@ -204,7 +199,7 @@ export const useSwapWindowLogic = () => {
         successToast('Swap successful');
         handleClearState();
         dispatch(globalActions.removeAllWindows());
-        getWalletsRequest(); // Обновляем данные кошелька после успешного свапа
+        getWalletsRequest(); 
       }
     } catch (e) {
       errorToast('Failed to swap tokens');
@@ -250,7 +245,6 @@ export const useSwapWindowLogic = () => {
   };
 
   const handleSelectFromToken = (token: Token) => {
-    console.log('Setting fromToken:', token);
     setFromToken(token);
     setCurrentView('swap');
     if (token.id === toToken?.id) {

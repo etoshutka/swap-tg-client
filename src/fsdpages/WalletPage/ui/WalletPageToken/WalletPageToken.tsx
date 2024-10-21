@@ -156,7 +156,7 @@ export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteTok
 
       {!props.isHidePrice && (
         <Flex direction="column" align="flex-end" gap={3}>
-          <Typography.Text text={`${token.balance !== 0 ? token.balance.toFixed(4) : token.balance.toFixed(0)} ${token.symbol}`} weight={550} align="right" wrap="nowrap" />
+          <Typography.Text text={`${token.balance !== 0 ? token.balance.toFixed(7) : '0'} ${token.symbol}`} weight={550} align="right" wrap="nowrap" />
           <Typography.Text text={`${token.balance_usd.toFixed(2)}$`} type="secondary" align="right" wrap="nowrap" />
         </Flex>
       )}

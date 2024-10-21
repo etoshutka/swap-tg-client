@@ -6,6 +6,7 @@ import { GetTokenInfoResult } from '@/entities/Wallet';
 import { ChangeEvent, useState } from 'react';
 import { useSelector } from 'react-redux';
 
+
 export const useAddTokenWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
 

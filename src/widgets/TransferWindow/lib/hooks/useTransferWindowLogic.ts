@@ -10,6 +10,7 @@ export const useTransferWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
   const dispatch = useDispatch();
   const selectedToken = useSelector(getSelectedToken);
+  
 
   const [tokenToTransfer, setTokenToTransfer] = useState<Token | undefined>();
   const [balanceUsd, setBalanceUsd] = useState<number>(0);
@@ -96,7 +97,6 @@ export const useTransferWindowLogic = () => {
   }, [selectedToken]);
 
   const handleTokenSelect = useCallback((token: Token) => {
-    console.log('Setting tokenToTransfer:', token);
     setTokenToTransfer(token);
     dispatch(walletActions.setSelectedToken(token));
     dispatch(globalActions.addWindow({ window: GlobalWindow.PrepareTransfer }));

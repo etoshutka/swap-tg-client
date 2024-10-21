@@ -100,3 +100,29 @@
   .negativeChange {
     color: #f44336;
   }
+
+  .actionButton {
+    padding: 4px 8px;
+    background-color: rgba(233, 237, 242, 1);
+    cursor: pointer;
+    font-size: 11px;
+    color: #666666;
+    transition: background-color 0.2s;
+    border-radius: 12px;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 40px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+  
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  
+    &:active {
+      background-color: #e8e8e8;
+    }
+  }

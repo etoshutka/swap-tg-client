@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import styles from './WalletPageTokens.module.scss';
 import { Button } from '@/shared/ui/Button/Button';
 import { Flex } from '@/shared/ui/Flex/Flex';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletPageLogic } from '../../lib/hooks/useWalletPageLogic';
 
@@ -21,23 +21,29 @@ export const WalletPageTokens = () => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
   
+  const tokenHeight = 70; // Высота одного токена
+  const visibleTokensCount = 5; // Количество видимых токенов в свернутом состоянии
+
+  const initialHeight = useMemo(() => {
+    const tokensCount = selectedWallet?.tokens?.length || 0;
+    const count = Math.min(tokensCount, visibleTokensCount);
+    return count * tokenHeight + (count - 1);
+  }, [selectedWallet?.tokens]);
+
   const handleShowMoreClick = (): void => {
-    setTimeout(() => setIsCollapsed((prev) => !prev), window.scrollY > 0 ? 250 : 0);
+    setIsCollapsed((prev) => !prev);
   };
   
   const handleAddTokenButtonClick = async (): Promise<void> => {
     dispatch(globalActions.addWindow({ window: GlobalWindow.AddToken }));
   };
 
-  useEffect(() => {
-    // Обновление списка токенов при изменении selectedWallet
-  }, [selectedWallet]);
-
   return (
     <Flex width="100%" direction="column" gap={12}>
       <motion.div 
-        initial={{ height: 132 }} 
-        animate={{ height: isCollapsed ? 132 : 'auto' }} 
+        initial={{ height: initialHeight }} 
+        animate={{ height: isCollapsed ? initialHeight : 'auto' }} 
+        transition={{ duration: 0.3 }}
         className={styles.tokens_list}
       >
         <AnimatePresence>
@@ -57,7 +63,7 @@ export const WalletPageTokens = () => {
         </AnimatePresence>
       </motion.div>
       
-      {selectedWallet?.tokens && selectedWallet.tokens?.length > 2 && (
+      {selectedWallet?.tokens && selectedWallet.tokens.length > visibleTokensCount && (
         <Button type="text" onClick={handleShowMoreClick}>
           <Typography.Text text={isCollapsed ? 'Show more' : 'Show less'} type="secondary" weight={400} fontSize={16} />
           <ArrowOutlineIcon style={{ transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)' }} />

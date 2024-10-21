@@ -11,15 +11,22 @@ import React from 'react';
 
 export interface TransactionProps {
   transaction: TransactionInterface;
+  onTransactionClick?: (transaction: TransactionInterface) => void;
+
 }
 
-export const Transaction: React.FC<TransactionProps> = ({ transaction }) => {
+export const Transaction: React.FC<TransactionProps> = ({ transaction, onTransactionClick}) => {
   const dispatch = useDispatch();
   const createdAtLocalTime: moment.Moment = moment.tz(transaction.created_at, 'UTC').tz(moment.tz.guess());
 
   const handleTransactionClick = () => {
-    dispatch(globalActions.addWindow({ window: GlobalWindow.TransactionDetails, payload: transaction }));
+    if (onTransactionClick) {
+      onTransactionClick(transaction);
+    } else {
+      dispatch(globalActions.addWindow({ window: GlobalWindow.TransactionDetails, payload: transaction }));
+    }
   };
+
 
   const renderAmount = () => {
     if (transaction.type === TransactionType.SWAP && transaction.fromCurrency && transaction.toCurrency) {

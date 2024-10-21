@@ -105,3 +105,9 @@ export interface GetHistoricalQuotesResult {
     price: number;
   }[];
 }
+
+
+export interface GetTokenTransactionsParams {
+  wallet_id: string;
+  token_symbol: string;
+}

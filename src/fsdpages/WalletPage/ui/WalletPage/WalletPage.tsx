@@ -22,6 +22,8 @@ import { DepositWindow } from '@/widgets/DepositWindow';
 import { RefWindow } from '@/widgets/RefWindow';
 import { SwapWindow } from '@/widgets/SwapWindow';
 import { TokenDetailsWindow } from '../WalletPageToken/TokenDetailsWindow';
+import { useWalletUpdater } from '@/shared/lib/hooks/useWalletUpdate/useWalletUpdate';
+
 
 export const WalletPage = () => {
   useWalletPageLogic();

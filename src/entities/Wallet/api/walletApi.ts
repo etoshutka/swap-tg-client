@@ -1,11 +1,12 @@
 import { getSelectedNetwork } from '../model/selectors/walletSliceSelectors';
-import { Network, Transaction, Wallet } from '../model/types/walletSchema';
+import { Network, Token, Transaction, Wallet } from '../model/types/walletSchema';
 import { StateSchema } from '@/shared/lib/providers/StoreProvider';
 import { ApiResponse } from '@/shared/lib/types/apiResponse';
 import { walletActions } from '../model/slices/walletSlice';
 import { globalActions } from '@/entities/Global';
 import * as types from './walletApiTypes';
 import { api } from '@/shared/api/api';
+import { updateWalletData } from '../model/services/updateWalletData';
 
 export const walletApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -28,6 +29,27 @@ export const walletApi = api.injectEndpoints({
           dispatch(globalActions.setLoading(false));
         }
       },
+    }),
+    getWalletSilent: build.query<ApiResponse<Wallet>, string>({
+      query: (id) => ({
+        url: `/wallets/wallet/${id}`,
+      }),
+      onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+        try {
+          const result = await queryFulfilled;
+          if (result?.data?.data) {
+            dispatch(walletActions.setSelectedWallet(result.data.data));
+          }
+        } catch (error) {
+          console.error('Error in getWalletSilentUpdate:', error);
+        }
+      },
+    }),
+    getTokenTransactions: build.query<ApiResponse<{ transactions: Transaction[], groupedTransactions: Record<string, Transaction[]> }>, types.GetTokenTransactionsParams>({
+      query: (params) => ({
+        url: `/wallets/token-transactions`,
+        params,
+      }),
     }),
     getWallets: build.query<ApiResponse<Wallet[]>, void>({
       query: () => ({
@@ -80,16 +102,31 @@ export const walletApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await dispatch(updateWalletData());
+        } catch (error) {
+          console.error('Failed to add wallet token:', error);
+        }
+      },
     }),
-
     deleteWalletToken: build.mutation<ApiResponse<null>, types.DeleteWalletTokenParams>({
       query: (body) => ({
         url: `/wallets/token/delete`,
         method: 'DELETE',
         body,
       }),
+      async onQueryStarted(body, { dispatch, queryFulfilled }) {
+        dispatch(walletActions.setIsLoading(true));
+        try {
+          await queryFulfilled;
+          dispatch(walletActions.removeWalletToken(body.token_id));
+        } finally {
+          dispatch(walletActions.setIsLoading(false));
+        }
+      },
     }),
-
     getWalletTransactions: build.query<ApiResponse<Transaction[]>, types.GetWalletTransactionsParams>({
       query: (params) => ({
         url: `/wallets/transactions`,
@@ -117,7 +154,6 @@ export const walletApi = api.injectEndpoints({
         body,
       }),
     }),
-
     getHistoricalQuotes: build.query<ApiResponse<types.GetHistoricalQuotesResult>, types.GetHistoricalQuotesParams>({
       query: (params) => ({
         url: `/wallets/token/historical-quotes`,
@@ -145,4 +181,5 @@ export const {
   useGetHistoricalQuotesQuery,
   useLazyGetHistoricalQuotesQuery,
   useDeleteWalletTokenMutation,
+  useGetTokenTransactionsQuery,
 } = walletApi;
