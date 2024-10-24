@@ -5,11 +5,14 @@ import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { networkSymbol } from '@/shared/consts/networkSymbol';
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useWalletUpdater } from '@/shared/lib/hooks/useWalletUpdate/useWalletUpdate';
 
 export const useTransferWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
   const dispatch = useDispatch();
   const selectedToken = useSelector(getSelectedToken);
+  const { updateWalletData, updateAfterDelay } = useWalletUpdater();
+
   
 
   const [tokenToTransfer, setTokenToTransfer] = useState<Token | undefined>();
@@ -81,6 +84,7 @@ export const useTransferWindowLogic = () => {
       if (result.ok) {
         successToast('Transfer successful');
         handleClearState();
+        updateAfterDelay(30000);
       }
     } catch (e) {
       errorToast('Failed to transfer tokens');

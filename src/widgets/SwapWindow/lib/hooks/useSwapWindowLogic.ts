@@ -4,11 +4,16 @@ import { useDebounce } from '@/shared/lib/hooks/useDebounce/useDebounce';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useWalletUpdater } from '@/shared/lib/hooks/useWalletUpdate/useWalletUpdate';
+import { useToastManager } from '@/shared/lib/hooks/useToastManager/useToastManager';
 
 export const useSwapWindowLogic = () => {
   const { errorToast, successToast } = useToasts();
+  const { showToast } = useToastManager({maxCount: 1});
   const dispatch = useDispatch();
   const selectedToken = useSelector(getSelectedToken);
+  const { updateWalletData, updateAfterDelay } = useWalletUpdater();
+
 
 
   const [fromToken, setFromToken] = useState<Token | undefined>();
@@ -28,7 +33,6 @@ export const useSwapWindowLogic = () => {
   //const [estimateGas, { isLoading: isEstimatingGas }] = walletApi.useEstimateGasMutation();
   const [getTokenPriceRequest] = walletApi.useLazyGetTokenPriceQuery();
   const [swapRequest, { isLoading: isSwapLoading }] = walletApi.useSwapMutation();
-  const [getWalletsRequest] = walletApi.useLazyGetWalletsQuery();
   const [getTokenExtendedInfoRequest] = walletApi.useLazyGetTokenExtendedInfoQuery();
 
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
@@ -96,7 +100,7 @@ export const useSwapWindowLogic = () => {
         setHistoricalData([]);
       }
     } catch (e) {
-      errorToast('Failed to get historical quotes');
+      showToast(errorToast, 'Failed to get historical quotes');
       setHistoricalData([]);
     } finally {
       setIsLoading(false);
@@ -138,7 +142,7 @@ export const useSwapWindowLogic = () => {
         }
       }
     } catch (e) {
-      errorToast('Failed to get token price');
+      showToast(errorToast, 'Failed to get token price');
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +161,7 @@ export const useSwapWindowLogic = () => {
         setTokenExtendedInfo(result.data);
       }
     } catch (e) {
-      errorToast('Failed to get extended token info');
+      showToast(errorToast, 'Failed to get extended token info');
     } finally {
       setIsTokenInfoLoading(false);
     }
@@ -196,13 +200,13 @@ export const useSwapWindowLogic = () => {
       }).unwrap();
 
       if (result.ok) {
-        successToast('Swap successful');
+        showToast(successToast, 'Swap successful');
         handleClearState();
         dispatch(globalActions.removeAllWindows());
-        getWalletsRequest(); 
+        updateAfterDelay(50000);
       }
     } catch (e) {
-      errorToast('Failed to swap tokens');
+      showToast(errorToast, 'Failed to swap tokens');
     } finally {
       setIsLoading(false)
     }
@@ -213,7 +217,7 @@ export const useSwapWindowLogic = () => {
     setFromAmount(newAmount);
 
     if (fromToken && Number(newAmount) > fromToken.balance) {
-      errorToast('Insufficient funds');
+      showToast(errorToast, 'Insufficient funds');
     }
 
     if (newAmount) {
@@ -222,7 +226,7 @@ export const useSwapWindowLogic = () => {
       setRate(0);
       setToAmount('');
     }
-  }, [fromToken, errorToast, handleGetRate]);
+  }, [fromToken, showToast, handleGetRate]);
 
 
   const handleMaxButtonClick = () => {

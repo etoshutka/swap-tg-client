@@ -1,5 +1,6 @@
 'use client'
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+
+import React, { useState, useRef, useCallback } from 'react';
 import { Typography } from '@/shared/ui/Typography/Typography';
 import { getTokenImage } from '../../lib/helpers/getTokenImage';
 import { Flex } from '@/shared/ui/Flex/Flex';
@@ -9,200 +10,203 @@ import { useSwipeable } from 'react-swipeable';
 import Trash from '@/shared/assets/icons/trash.svg'
 import { globalActions, GlobalWindow } from '@/entities/Global';
 import { useDispatch } from 'react-redux';
-import { TokenDetailsWindow } from './TokenDetailsWindow'; // Убедитесь, что путь импорта правильный
-
-// Утилита для объединения refs
-const mergeRefs = (...refs: React.Ref<any>[]) => {
-  return (node: any) => {
-    refs.forEach((ref) => {
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref != null) {
-        (ref as React.MutableRefObject<any>).current = node;
-      }
-    });
-  };
-};
+import { TokenDetailsWindow } from './TokenDetailsWindow';
 
 export interface WalletTokenProps {
   token: Token;
   isHidePrice?: boolean;
   onTokenClick?: (token: Token) => void;
   onDeleteToken?: (token: Token) => void;
+  isEssentialToken?: boolean;
 }
 
-export const WalletPageToken: React.FC<WalletTokenProps> = ({ token, onDeleteToken, ...props }) => {
+export const WalletPageToken: React.FC<WalletTokenProps> = React.memo(({ 
+  token, 
+  onDeleteToken, 
+  isHidePrice, 
+  onTokenClick,
+  isEssentialToken = false
+}) => {
   const dispatch = useDispatch();
   const [isSwiped, setIsSwiped] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const deleteButtonWidth = 80; // ширина кнопки удаления
 
-  const updateTransform = (offset: number) => {
-    if (contentRef.current) {
-      contentRef.current.style.transform = `translateX(${-offset}px)`;
-    }
-  };
+  const handleSwipe = useCallback(({ deltaX }: { deltaX: number }) => {
+    if (isEssentialToken || !contentRef.current) return;
+    
+    const maxOffset = 80;
+    const offset = Math.max(0, Math.min(maxOffset, -deltaX));
+    contentRef.current.style.transform = `translateX(${-offset}px)`;
+  }, [isEssentialToken]);
 
   const { ref: swipeableRef, ...swipeHandlers } = useSwipeable({
-    onSwiping: (e) => {
-      if (e.dir === 'Left') {
-        const newOffset = Math.min(deleteButtonWidth, Math.max(0, -e.deltaX));
-        updateTransform(newOffset);
-      } else if (e.dir === 'Right') {
-        const currentOffset = isSwiped ? deleteButtonWidth : 0;
-        const newOffset = Math.max(0, currentOffset - e.deltaX);
-        updateTransform(newOffset);
+    onSwiping: handleSwipe,
+    onSwipedLeft: () => {
+      if (!isEssentialToken && contentRef.current) {
+        setIsSwiped(true);
+        contentRef.current.style.transform = 'translateX(-80px)';
       }
     },
-    onSwipedLeft: () => {
-      setIsSwiped(true);
-      updateTransform(deleteButtonWidth);
-    },
     onSwipedRight: () => {
-      setIsSwiped(false);
-      updateTransform(0);
+      if (!isEssentialToken && contentRef.current) {
+        setIsSwiped(false);
+        contentRef.current.style.transform = 'translateX(0)';
+      }
     },
-    trackMouse: true,
     trackTouch: true,
+    delta: 10, // Минимальное расстояние для определения свайпа
+    preventScrollOnSwipe: true, // Предотвращает скролл при свайпе
+    touchEventOptions: { passive: false } // Опции для touch-событий
   });
 
-  const handleTokenClick = useCallback(() => {
-    setShowDetails(false); 
+  const handleClick = useCallback(() => {
     if (!isSwiped) {
       dispatch(walletActions.setSelectedToken(token));
       setShowDetails(true);
       dispatch(globalActions.addWindow({ window: GlobalWindow.TokenDetails }));
-      if (props.onTokenClick) {
-        props.onTokenClick(token);
-      }
+      onTokenClick?.(token);
     }
-  }, [isSwiped, dispatch, props.onTokenClick, token]);
-  
+  }, [isSwiped, dispatch, onTokenClick, token]);
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onDeleteToken) {
-      onDeleteToken(token);
-    }
-    setIsSwiped(false);
-    updateTransform(0);
-  };
-
-  const handleCloseDetails = useCallback(() => {
-    setShowDetails(false);
-    dispatch(globalActions.removeWindow(GlobalWindow.TokenDetails));
-    dispatch(walletActions.clearSelectedToken()); 
-  }, [dispatch]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsSwiped(false);
-        updateTransform(0);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  
-
-
-  const mergedRef = useMemo(
-    () => mergeRefs(wrapperRef, swipeableRef),
-    [swipeableRef]
-  );
-
-  const renderTokenContent = () => (
-    <Flex
-      width="100%"
-      align="center"
-      radius="16px"
-      height="60px"
-      padding="10px 16px"
-      justify="space-between"
-      bg="var(--secondaryBg)"
-      onClick={handleTokenClick}
-    >
-      <Flex align="center" gap={12}>
-        <Image width={40} height={40} src={getTokenImage(token)} alt="token-icon" priority />
-        <Flex direction="column" gap={3}>
-          <Typography.Text text={`${token.name} (${token.symbol})`} weight={550} width={props.isHidePrice ? "250px" : "135px"} wrap="nowrap" />
-          {props.isHidePrice ? (
-            <Typography.Text text={`${token.balance} ${token.symbol}`} weight={450} align="left" wrap="nowrap" type="secondary" />
-          ) : (
-            <Typography.Text
-              type="secondary"
-              wrap="nowrap"
-              text={
-                <>
-                  ${token.price.toFixed(2)}{' '}
-                  <Typography.Text
-                    wrap="nowrap"
-                    text={`${token.price_change_percentage.toFixed(2)}%`}
-                    color={token.price_change_percentage > 0 ? 'var(--green)' : 'var(--red)'}
-                  />
-                </>
-              }
-            />
-          )}
-        </Flex>
-      </Flex>
-
-      {!props.isHidePrice && (
-        <Flex direction="column" align="flex-end" gap={3}>
-          <Typography.Text text={`${token.balance !== 0 ? token.balance.toFixed(7) : '0'} ${token.symbol}`} weight={550} align="right" wrap="nowrap" />
-          <Typography.Text text={`${token.balance_usd.toFixed(2)}$`} type="secondary" align="right" wrap="nowrap" />
-        </Flex>
-      )}
-    </Flex>
-  );
+  const priceChangeColor = token.price_change_percentage > 0 ? 'var(--green)' : 'var(--red)';
+  const formattedBalance = token.balance !== 0 ? token.balance.toFixed(7) : '0';
 
   return (
-    <>
-      <div 
-        ref={mergedRef}
-        {...swipeHandlers}
-        style={{ position: 'relative', overflow: 'hidden' }}
-      >
-        <div 
-          ref={contentRef}
-          style={{
-            transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-            willChange: 'transform'
-          }}
-        >
-          {renderTokenContent()}
-        </div>
+    <div style={{ 
+      position: 'relative', 
+      borderRadius: '16px',
+      background: 'var(--primaryBg)',
+      isolation: 'isolate'
+    }}>
+      {!isEssentialToken && (
         <div
           style={{
             position: 'absolute',
             top: 0,
             right: 0,
-            bottom: 0,
-            width: `${deleteButtonWidth}px`,
+            height: '100%',
+            width: '80px',
             background: 'var(--primaryBg)',
+            borderRadius: '0 16px 16px 0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            transform: `translateX(${isSwiped ? '0' : '100%'})`,
-            transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            zIndex: 1
           }}
-          onClick={handleDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteToken?.(token);
+            setIsSwiped(false);
+            if (contentRef.current) {
+              contentRef.current.style.transform = 'translateX(0)';
+            }
+          }}
         >
           <Flex align="center" gap={8}>
             <Image src={Trash} alt="" width={24} height={24} />
             <Typography.Text text="Delete" type="secondary" />
           </Flex>
         </div>
+      )}
+
+      <div
+        ref={mergeRefs(contentRef, swipeableRef)}
+        {...(!isEssentialToken ? swipeHandlers : {})}
+        style={{
+          transform: 'translateX(0)',
+          transition: 'transform 0.3s ease',
+          borderRadius: '16px',
+          position: 'relative',
+          zIndex: 2,
+          background: 'var(--secondaryBg)',
+        }}
+      >
+        <Flex
+          width="100%"
+          align="center"
+          radius="16px"
+          height="60px"
+          padding="10px 16px"
+          justify="space-between"
+          bg="var(--secondaryBg)"
+          onClick={handleClick}
+        >
+          <Flex align="center" gap={12}>
+            <Image 
+              width={40} 
+              height={40} 
+              src={getTokenImage(token)} 
+              alt="token-icon" 
+              priority 
+            />
+            <Flex direction="column" gap={3}>
+              <Typography.Text 
+                text={`${token.name} (${token.symbol})`} 
+                weight={550} 
+                width={isHidePrice ? "250px" : "135px"} 
+                wrap="nowrap" 
+              />
+              {isHidePrice ? (
+                <Typography.Text 
+                  text={`${token.balance} ${token.symbol}`} 
+                  weight={450} 
+                  align="left" 
+                  wrap="nowrap" 
+                  type="secondary" 
+                />
+              ) : (
+                <Typography.Text
+                  type="secondary"
+                  wrap="nowrap"
+                  text={
+                    <>
+                      ${token.price.toFixed(2)}{' '}
+                      <Typography.Text
+                        wrap="nowrap"
+                        text={`${token.price_change_percentage.toFixed(2)}%`}
+                        color={priceChangeColor}
+                      />
+                    </>
+                  }
+                />
+              )}
+            </Flex>
+          </Flex>
+
+          {!isHidePrice && (
+            <Flex direction="column" align="flex-end" gap={3}>
+              <Typography.Text 
+                text={`${formattedBalance} ${token.symbol}`} 
+                weight={550} 
+                align="right" 
+                wrap="nowrap" 
+              />
+              <Typography.Text 
+                text={`${token.balance_usd.toFixed(2)}$`} 
+                type="secondary" 
+                align="right" 
+                wrap="nowrap" 
+              />
+            </Flex>
+          )}
+        </Flex>
       </div>
-      {showDetails && <TokenDetailsWindow/>}
-    </>
+
+      {showDetails && <TokenDetailsWindow />}
+    </div>
   );
+});
+
+WalletPageToken.displayName = 'WalletPageToken';
+
+const mergeRefs = (...refs: React.Ref<any>[]) => (node: any) => {
+  refs.forEach((ref) => {
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref != null) {
+      (ref as React.MutableRefObject<any>).current = node;
+    }
+  });
 };

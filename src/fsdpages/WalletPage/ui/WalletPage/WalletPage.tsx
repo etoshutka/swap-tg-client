@@ -1,12 +1,10 @@
 'use client';
-
 import { WalletPageActions } from '../WalletPageActions/WalletPageActions';
 import { WalletPageHeader } from '../WalletPageHeader/WalletPageHeader';
 import { useWalletPageLogic } from '../../lib/hooks/useWalletPageLogic';
 import { WalletPageTokens } from '../WalletPageTokens/WalletPageTokens';
 import { WalletPageInfo } from '../WalletPageInfo/WalletPageInfo';
 import { Page } from '@/shared/ui/Page/Page';
-
 import { TransactionDetailsWindow } from '@/widgets/TransactionDetailsWindow';
 import { TransactionsHistoryWindow } from '@/widgets/TransactionsHistoryWindow';
 import { WalletsListWindow } from '@/widgets/WalletsListWindow';
@@ -22,7 +20,7 @@ import { DepositWindow } from '@/widgets/DepositWindow';
 import { RefWindow } from '@/widgets/RefWindow';
 import { SwapWindow } from '@/widgets/SwapWindow';
 import { TokenDetailsWindow } from '../WalletPageToken/TokenDetailsWindow';
-import { useWalletUpdater } from '@/shared/lib/hooks/useWalletUpdate/useWalletUpdate';
+
 
 
 export const WalletPage = () => {

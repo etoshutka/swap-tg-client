@@ -22,12 +22,14 @@ import { WindowHeader } from '@/shared/ui/Header/WindowHeader';
 import notrans from '@/shared/assets/icons/notransicon.svg';
 import TokenInfoBlock from '@/widgets/SwapWindow/ui/TokenInfoBlock';
 import styles from '@/widgets/SwapWindow/ui/PrepareSwapWindow.module.scss';
+import { useToastManager } from '@/shared/lib/hooks/useToastManager/useToastManager';
 
 export const TokenDetailsWindow: React.FC = () => {
   const dispatch = useDispatch();
   const swapLogic = useSwapWindowLogic();
   const transferLogic = useTransferWindowLogic();
   const { errorToast } = useToasts();
+  const { showToast } = useToastManager({maxCount: 2});
 
   const selectedToken = useSelector(getSelectedToken);
   const isWindowOpen = useSelector((state: StateSchema) => getIsWindowOpen(state)(GlobalWindow.TokenDetails));
@@ -46,11 +48,10 @@ export const TokenDetailsWindow: React.FC = () => {
         await swapFlow.handleSelectToToken(localToken);
         setIsInfoLoaded(true);
       } catch (error) {
-        console.error('Failed to load token info:', error);
-        errorToast('Failed to load token info');
+        showToast(errorToast, 'Failed to load token info')
       }
     }
-  }, [localToken, isInfoLoaded, swapFlow, errorToast]);
+  }, [localToken, isInfoLoaded, swapFlow, showToast]);
 
   useEffect(() => {
     setIsInfoLoaded(false);
@@ -68,7 +69,7 @@ export const TokenDetailsWindow: React.FC = () => {
 
   const handleSend = useCallback(() => {
     if (localToken && localToken.balance <= 0) {
-      errorToast('Insufficient funds');
+      showToast(errorToast, 'Insufficient funds');
       return;
     }
     if (localToken) {
@@ -77,11 +78,11 @@ export const TokenDetailsWindow: React.FC = () => {
       transferLogic.flow.handleTokenSelect(localToken);
       handleClose();
     }
-  }, [localToken, dispatch, errorToast, transferLogic.flow, handleClose]);
+  }, [localToken, dispatch, showToast, transferLogic.flow, handleClose]);
 
   const handleSwap = useCallback(() => {
     if (localToken && localToken.balance <= 0) {
-      errorToast('Insufficient funds');
+      showToast(errorToast, 'Insufficient funds');
       return;
     }
     if (localToken) {
@@ -93,7 +94,6 @@ export const TokenDetailsWindow: React.FC = () => {
   }, [localToken, dispatch, errorToast, swapFlow, handleClose]);
 
   const handleTransactionClick = useCallback((transaction: TransactionInterface) => {
-    
     dispatch(globalActions.addWindow({ window: GlobalWindow.TransactionDetails, payload: transaction }));
     setTimeout(() => {
       dispatch(globalActions.removeWindow(GlobalWindow.TokenDetails));
@@ -120,7 +120,7 @@ export const TokenDetailsWindow: React.FC = () => {
         <Flex direction="column" align="center" gap={16}>
           <Image width={64} height={64} src={getTokenImage(localToken)} alt={`${localToken.name} icon`} />
           <Flex align="baseline" gap={4}>
-            <Typography.Text text={`${localToken.balance.toFixed(2)}`} fontFamily="ClashDisplay-Bold" fontSize={40} />
+            <Typography.Text text={`${localToken.balance !== 0? localToken.balance.toFixed(7) : localToken.balance.toFixed(2)}`} fontFamily="ClashDisplay-Bold" fontSize={40} />
             <Typography.Text text={localToken.symbol} fontFamily="ClashDisplay-Bold" fontSize={40} type="secondary" />
           </Flex>
           <Typography.Text text={`≈ ${localToken.balance_usd.toFixed(2)} $`} type="secondary" />
@@ -169,16 +169,38 @@ export const TokenDetailsWindow: React.FC = () => {
                     <Transaction 
                       key={transaction.id} 
                       transaction={transaction}
-                      onTransactionClick={handleTransactionClick}
+                      onTransactionClick={() => handleTransactionClick(transaction)}
                     />
                   ))}
                 </React.Fragment>
               ))
             ) : (
-              <Flex direction="column" align="center" justify="center" style={{ padding: '20px' }}>
-                <Image src={notrans} alt=''></Image>
-                <Typography.Text text="No transactions found" type="secondary" align="center" />
-              </Flex>
+              <Flex 
+            direction="column" 
+            align="center" 
+            justify="center" 
+            style={{ 
+              padding: '20px',
+              minHeight: '400px', 
+              height: '100%'     
+            }}
+          >
+            <Image 
+              src={notrans} 
+              alt="No transactions" 
+              width={120}       
+              height={120}      
+              style={{
+                marginBottom: '16px' 
+              }}
+            />
+            <Typography.Text 
+              text="No transactions found" 
+              type="secondary" 
+              align="center"
+              fontSize={16}     
+            />
+          </Flex>
             )}
           </Flex>
         </Flex>

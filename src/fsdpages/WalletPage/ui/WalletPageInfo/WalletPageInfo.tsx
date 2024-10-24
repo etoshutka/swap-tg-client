@@ -15,6 +15,7 @@ import { Button } from '@/shared/ui/Button/Button';
 import Spinner from '@/shared/ui/Spinner/Spinner';
 import { Flex } from '@/shared/ui/Flex/Flex';
 
+
 export const WalletPageInfo = () => {
   const dispatch = useDispatch();
   const { successToast } = useToasts();

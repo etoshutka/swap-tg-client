@@ -8,6 +8,7 @@ import { Field } from '@/shared/ui/Field/Field';
 import { Flex } from '@/shared/ui/Flex/Flex';
 import { useDispatch } from 'react-redux';
 
+
 export const WalletPageActions = () => {
   const dispatch = useDispatch();
 

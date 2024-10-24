@@ -3,9 +3,12 @@ import { getIsWindowOpen, GlobalWindow } from '@/entities/Global';
 import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import { useToastManager } from '@/shared/lib/hooks/useToastManager/useToastManager';
 
 export const useTransactionsHistoryWindowLogic = () => {
   const { errorToast } = useToasts();
+  const { showToast } = useToastManager({maxCount: 2});
+
 
   const isWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.TransactionsHistory);
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
@@ -16,7 +19,7 @@ export const useTransactionsHistoryWindowLogic = () => {
   );
 
   useEffect(() => {
-    isError && errorToast('Failed to get transactions history');
+    isError && showToast(errorToast, 'Failed to get transactions history');
   }, [isError]);
 
   return {

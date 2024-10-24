@@ -4,89 +4,64 @@ import { getSelectedWallet, walletActions, Wallet } from '@/entities/Wallet';
 import { walletApi } from '@/entities/Wallet/api/walletApi';
 import { ApiResponse } from '@/shared/lib/types/apiResponse';
 
-export const useWalletUpdater = (initialInterval = 30000) => {
+interface WalletApiError {
+  message: string;
+  status?: number;
+}
+
+export const useWalletUpdater = () => {
   const selectedWallet = useSelector(getSelectedWallet);
   const dispatch = useDispatch();
   const [getWalletSilent] = walletApi.useLazyGetWalletSilentQuery();
-  const [updateInterval, setUpdateInterval] = useState(initialInterval);
   const lastUpdateTime = useRef(0);
   const isUpdating = useRef(false);
-  const errorCount = useRef(0);
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
+  const delayedUpdateTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const resetUpdateState = useCallback(() => {
-    isUpdating.current = false;
-    errorCount.current = 0;
-    setUpdateInterval(initialInterval);
-  }, [initialInterval]);
+  // Очистка таймаута
+  const clearDelayedUpdate = useCallback(() => {
+    if (delayedUpdateTimeout.current) {
+      clearTimeout(delayedUpdateTimeout.current);
+      delayedUpdateTimeout.current = null;
+    }
+  }, []);
 
   const updateWalletData = useCallback(async () => {
-    if (!selectedWallet || isUpdating.current) return;
+    if (isUpdating.current) return;
 
     const now = Date.now();
-    if (now - lastUpdateTime.current < 15000) return;
+    if (!selectedWallet || now - lastUpdateTime.current < 3000) return;
 
     isUpdating.current = true;
 
     try {
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 10000);
-      });
-
-      const response = await Promise.race([
-        getWalletSilent(selectedWallet.id),
-        timeoutPromise
-      ]);
-
-      
-      if ('data' in response && response.data && 'data' in response.data) {
-        const walletData = response.data.data as Wallet;
-        dispatch(walletActions.setSelectedWallet(walletData));
+      const result = await getWalletSilent(selectedWallet.id).unwrap();
+      if (result?.data) {
+        dispatch(walletActions.setSelectedWallet(result.data));
         lastUpdateTime.current = now;
-        errorCount.current = 0;
-        setUpdateInterval(initialInterval);
       }
     } catch (error) {
-     
-      errorCount.current += 1;
-
-      if (errorCount.current > 3) {
-        setUpdateInterval(prev => Math.min(prev * 2, 60000));
-      }
-      
-      if (errorCount.current > 5) {
-        resetUpdateState();
-      }
+      console.error('Failed to update wallet data:', error);
     } finally {
       isUpdating.current = false;
     }
-  }, [selectedWallet, getWalletSilent, dispatch, initialInterval, resetUpdateState]);
+  }, [selectedWallet, getWalletSilent, dispatch]);
 
-  useEffect(() => {
-    if (intervalId.current) {
-      clearInterval(intervalId.current);
-    }
+  // Обновление с задержкой
+  const updateAfterDelay = useCallback((delay: number) => {
+    clearDelayedUpdate(); // Очищаем предыдущий таймаут, если есть
 
-    intervalId.current = setInterval(updateWalletData, updateInterval);
-
-    if (selectedWallet && !isUpdating.current) {
+    delayedUpdateTimeout.current = setTimeout(() => {
       updateWalletData();
-    }
+    }, delay);
+  }, [updateWalletData, clearDelayedUpdate]);
 
-    return () => {
-      if (intervalId.current) {
-        clearInterval(intervalId.current);
-      }
-    };
-  }, [updateWalletData, updateInterval, selectedWallet]);
-
+  // Очистка при размонтировании
   useEffect(() => {
-    resetUpdateState();
-  }, [selectedWallet?.id, resetUpdateState]);
+    return clearDelayedUpdate;
+  }, [clearDelayedUpdate]);
 
-  return { 
+  return {
     updateWalletData,
-    isUpdating: isUpdating.current,
-    currentInterval: updateInterval 
+    updateAfterDelay
   };
 };

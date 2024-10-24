@@ -1,13 +1,9 @@
 import { getSelectedWallet, Wallet, walletApi } from '@/entities/Wallet';
 import { getIsWindowOpen, GlobalWindow } from '@/entities/Global';
-import { useToasts } from '@/shared/lib/hooks/useToasts/useToasts';
 import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
 import { StateSchema } from '@/shared/lib/providers/StoreProvider'; 
 
 export const useTokenTransactionsWindowLogic = () => {
-  const { errorToast } = useToasts();
-
   const isWindowOpen: boolean = useSelector(getIsWindowOpen)(GlobalWindow.TokenDetails);
   const selectedWallet: Wallet | undefined = useSelector(getSelectedWallet);
   const selectedToken = useSelector((state: StateSchema) => state.wallet.selectedToken);
